@@ -145,18 +145,24 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 
 ### Completed
 
+#### M01 — Infrastructure ✅ (T001–T010)
+
 | Task | Mô tả | File(s) |
 |------|-------|---------|
-| T001 | Init Gradle project — đầy đủ dependencies (Web, Security, JPA, WebSocket, Redis/Jedis, Flyway, JWT, Springdoc, Lombok, Hypersistence, Testcontainers) | `build.gradle.kts` |
-| T002 | Docker Compose dev — Postgres 16, Redis 7, MinIO, Coturn với healthchecks và volumes | `docker-compose.yml`, `turnserver.conf`, `.env.example` |
-| T003 | application.yml — datasource/HikariCP, JPA, Flyway, Redis/Jedis, JWT, MinIO, virtual threads, actuator | `application.yml`, `application-dev.yml` |
-| T004 | BaseEntity — `@MappedSuperclass`, UUID PK (`GenerationType.UUID`), `createdAt`/`updatedAt` via JPA Auditing | `common/BaseEntity.java`, `config/JpaConfig.java` |
-| T005 | ApiResponse wrapper — `ApiResponse<T>` (ok/error static factories, `@JsonInclude NON_NULL`), `PageMeta` (from `Page<?>`) | `common/response/ApiResponse.java`, `common/response/PageMeta.java` |
-| T006 | Exception hierarchy — `AppException` (abstract, status+errorCode), `NotFoundException` (404), `ConflictException` (409), `ForbiddenException` (403), `UnauthorizedException` (401), `BusinessException` (422) | `common/exception/*.java` |
-| T007 | GlobalExceptionHandler — `AppException`, `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `AccessDeniedException`, fallback `Exception` | `common/exception/GlobalExceptionHandler.java` |
-| T008 | RequestLoggingFilter — MDC `requestId`, log method/path/status/duration, `X-Request-ID` response header | `common/RequestLoggingFilter.java` |
-| T009 | JoinCodeGenerator — 6-char uppercase alphanumeric (no ambiguous chars O/0/I/1), `SecureRandom` | `common/util/JoinCodeGenerator.java` |
-| T010 | OpenAPI config — Bearer JWT security scheme, global security requirement, contact info; Swagger UI tại `/swagger-ui.html` | `config/OpenApiConfig.java` |
+| T001 | Init Gradle project — Web, Security, JPA, WebSocket, Redis/Jedis, Flyway, JWT, Springdoc, Lombok, Hypersistence, Testcontainers | `build.gradle.kts` |
+| T002 | Docker Compose — Postgres 16, Redis 7, MinIO, Coturn + healthchecks | `docker-compose.yml`, `turnserver.conf`, `.env.example` |
+| T003 | application.yml — datasource/HikariCP, JPA, Flyway, Redis/Jedis, JWT, MinIO, virtual threads | `application.yml`, `application-dev.yml` |
+| T004 | BaseEntity — `@MappedSuperclass`, UUID PK, `createdAt`/`updatedAt` JPA Auditing | `common/BaseEntity.java`, `config/JpaConfig.java` |
+| T005 | ApiResponse wrapper — `ApiResponse<T>` (ok/error factories, NON_NULL), `PageMeta` | `common/response/ApiResponse.java`, `common/response/PageMeta.java` |
+| T006 | Exception hierarchy — `AppException`, `NotFoundException`, `ConflictException`, `ForbiddenException`, `UnauthorizedException`, `BusinessException` | `common/exception/*.java` |
+| T007 | GlobalExceptionHandler — xử lý AppException, validation, JSON parse, AccessDenied, fallback 500 | `common/exception/GlobalExceptionHandler.java` |
+| T008 | RequestLoggingFilter — MDC requestId, log method/path/status/duration, `X-Request-ID` header | `common/RequestLoggingFilter.java` |
+| T009 | JoinCodeGenerator — 6-char SecureRandom, bỏ ký tự nhầm lẫn O/0/I/1 | `common/util/JoinCodeGenerator.java` |
+| T010 | OpenAPI config — Bearer JWT scheme, global security, Swagger UI `/swagger-ui.html` | `config/OpenApiConfig.java` |
+
+#### M02 — Auth (T011–T025)
+
+_(chưa bắt đầu)_
 
 ### In Progress
 
