@@ -156,6 +156,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T007 | GlobalExceptionHandler — `AppException`, `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `AccessDeniedException`, fallback `Exception` | `common/exception/GlobalExceptionHandler.java` |
 | T008 | RequestLoggingFilter — MDC `requestId`, log method/path/status/duration, `X-Request-ID` response header | `common/RequestLoggingFilter.java` |
 | T009 | JoinCodeGenerator — 6-char uppercase alphanumeric (no ambiguous chars O/0/I/1), `SecureRandom` | `common/util/JoinCodeGenerator.java` |
+| T010 | OpenAPI config — Bearer JWT security scheme, global security requirement, contact info; Swagger UI tại `/swagger-ui.html` | `config/OpenApiConfig.java` |
 
 ### In Progress
 
@@ -163,4 +164,4 @@ _(none)_
 
 ### Next
 
-T010 — OpenAPI / Swagger config
+T011 — Flyway V1: `users` table DDL
