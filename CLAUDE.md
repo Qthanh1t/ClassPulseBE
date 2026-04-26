@@ -154,6 +154,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T005 | ApiResponse wrapper — `ApiResponse<T>` (ok/error static factories, `@JsonInclude NON_NULL`), `PageMeta` (from `Page<?>`) | `common/response/ApiResponse.java`, `common/response/PageMeta.java` |
 | T006 | Exception hierarchy — `AppException` (abstract, status+errorCode), `NotFoundException` (404), `ConflictException` (409), `ForbiddenException` (403), `UnauthorizedException` (401), `BusinessException` (422) | `common/exception/*.java` |
 | T007 | GlobalExceptionHandler — `AppException`, `MethodArgumentNotValidException`, `HttpMessageNotReadableException`, `AccessDeniedException`, fallback `Exception` | `common/exception/GlobalExceptionHandler.java` |
+| T008 | RequestLoggingFilter — MDC `requestId`, log method/path/status/duration, `X-Request-ID` response header | `common/RequestLoggingFilter.java` |
 
 ### In Progress
 
@@ -161,4 +162,4 @@ _(none)_
 
 ### Next
 
-T008 — `RequestLoggingFilter` (MDC requestId)
+T009 — `JoinCodeGenerator`

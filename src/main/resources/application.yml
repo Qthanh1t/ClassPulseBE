@@ -66,6 +66,8 @@ minio:
   bucket: ${MINIO_BUCKET:classpulse}
 
 logging:
+  pattern:
+    console: "%d{HH:mm:ss} %-5level [%X{requestId}] %logger{36} - %msg%n"
   level:
     root: WARN
     com.classpulse: INFO
