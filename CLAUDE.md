@@ -142,3 +142,19 @@ Env vars cần thiết (xem `.env.example`): `DB_URL`, `DB_USER`, `DB_PASSWORD`,
 
 Xem `ClassPulseDoc/plan/implementation_plan.md` để biết task nào đã xong / đang làm.
 Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
+
+### Completed
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T001 | Init Gradle project — đầy đủ dependencies (Web, Security, JPA, WebSocket, Redis/Jedis, Flyway, JWT, Springdoc, Lombok, Hypersistence, Testcontainers) | `build.gradle.kts` |
+| T002 | Docker Compose dev — Postgres 16, Redis 7, MinIO, Coturn với healthchecks và volumes | `docker-compose.yml`, `turnserver.conf`, `.env.example` |
+| T003 | application.yml — datasource/HikariCP, JPA, Flyway, Redis/Jedis, JWT, MinIO, virtual threads, actuator | `application.yml`, `application-dev.yml` |
+
+### In Progress
+
+_(none)_
+
+### Next
+
+T004 — `BaseEntity` (`@MappedSuperclass`, UUID PK, JPA Auditing)
