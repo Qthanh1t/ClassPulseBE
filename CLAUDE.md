@@ -151,6 +151,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T002 | Docker Compose dev — Postgres 16, Redis 7, MinIO, Coturn với healthchecks và volumes | `docker-compose.yml`, `turnserver.conf`, `.env.example` |
 | T003 | application.yml — datasource/HikariCP, JPA, Flyway, Redis/Jedis, JWT, MinIO, virtual threads, actuator | `application.yml`, `application-dev.yml` |
 | T004 | BaseEntity — `@MappedSuperclass`, UUID PK (`GenerationType.UUID`), `createdAt`/`updatedAt` via JPA Auditing | `common/BaseEntity.java`, `config/JpaConfig.java` |
+| T005 | ApiResponse wrapper — `ApiResponse<T>` (ok/error static factories, `@JsonInclude NON_NULL`), `PageMeta` (from `Page<?>`) | `common/response/ApiResponse.java`, `common/response/PageMeta.java` |
 
 ### In Progress
 
@@ -158,4 +159,4 @@ _(none)_
 
 ### Next
 
-T005 — `ApiResponse<T>` wrapper + `PageMeta`
+T006 — Exception hierarchy (`AppException`, `NotFoundException`, `ConflictException`, `ForbiddenException`, `UnauthorizedException`, `BusinessException`)
