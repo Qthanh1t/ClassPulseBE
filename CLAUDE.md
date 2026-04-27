@@ -170,6 +170,8 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T014 | UserRepository — `JpaRepository<User, UUID>` + `findByEmail`, `existsByEmail` | `user/UserRepository.java` |
 | T015 | JwtTokenProvider — generate HS512 access token (sub/role/name/jti), validate, parseClaims, helper getters | `common/security/JwtTokenProvider.java` |
 | T016 | JwtAuthFilter — extract Bearer token → parseClaims → build `UserPrincipal` → set SecurityContext; `UserPrincipal` record (userId, role, name) dùng với `@AuthenticationPrincipal` | `common/security/JwtAuthFilter.java`, `common/security/UserPrincipal.java` |
+| T017 | SecurityConfig — stateless, CSRF off, CORS, public routes, addFilterBefore JwtAuthFilter, `PasswordEncoder` BCrypt(12), `@EnableMethodSecurity` | `config/SecurityConfig.java` |
+| T018 | JwtAuthEntryPoint + JwtAccessDeniedHandler — JSON 401/403 dùng `ObjectMapper` + `ApiResponse.error(...)` | `common/security/JwtAuthEntryPoint.java`, `common/security/JwtAccessDeniedHandler.java` |
 
 ### In Progress
 
@@ -177,4 +179,4 @@ _(none)_
 
 ### Next
 
-T017 — SecurityConfig
+T019 — Auth DTOs
