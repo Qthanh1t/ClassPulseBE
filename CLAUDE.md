@@ -169,6 +169,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T013 | User entity + Role enum — `@Entity` cho `users`, `Role` enum (TEACHER/STUDENT/ADMIN) với `AttributeConverter` sang lowercase | `user/User.java`, `user/Role.java` |
 | T014 | UserRepository — `JpaRepository<User, UUID>` + `findByEmail`, `existsByEmail` | `user/UserRepository.java` |
 | T015 | JwtTokenProvider — generate HS512 access token (sub/role/name/jti), validate, parseClaims, helper getters | `common/security/JwtTokenProvider.java` |
+| T016 | JwtAuthFilter — extract Bearer token → parseClaims → build `UserPrincipal` → set SecurityContext; `UserPrincipal` record (userId, role, name) dùng với `@AuthenticationPrincipal` | `common/security/JwtAuthFilter.java`, `common/security/UserPrincipal.java` |
 
 ### In Progress
 
@@ -176,4 +177,4 @@ _(none)_
 
 ### Next
 
-T016 — JwtAuthFilter
+T017 — SecurityConfig
