@@ -174,6 +174,11 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T018 | JwtAuthEntryPoint + JwtAccessDeniedHandler — JSON 401/403 dùng `ObjectMapper` + `ApiResponse.error(...)` | `common/security/JwtAuthEntryPoint.java`, `common/security/JwtAccessDeniedHandler.java` |
 | T019 | Auth DTOs — `RegisterRequest` (@Valid: email/password/name/role), `LoginRequest`, `AuthResponse` (user+accessToken+expiresIn) với `UserSummary.from(User)` factory | `auth/RegisterRequest.java`, `auth/LoginRequest.java`, `auth/AuthResponse.java` |
 | T020 | RefreshToken entity + repo — không extend BaseEntity (không có updated_at); `findByTokenHashAndRevokedFalse`, `revokeAllByUserId` (@Modifying bulk update) | `auth/RefreshToken.java`, `auth/RefreshTokenRepository.java` |
+| T021 | RefreshTokenService — `createRefreshToken` (SHA-256 hash, 30-day expiry), `validateAndConsume` (rotation: revoke cũ + tạo mới), `revokeByRawToken`, `revokeAllForUser` | `auth/RefreshTokenService.java`, `auth/AuthResult.java` |
+| T022 | WsTicketService — Redis `ws_ticket:{ticket}` với TTL 60s, `generateTicket(userId)`, `validateAndConsume(ticket) → Optional<UUID>` | `common/security/WsTicketService.java` |
+| T023 | AuthService — `register` (uniqueness check, bcrypt, save user, issue tokens), `login` (verify pw, issue tokens), `refresh` (rotate token, new JWT), `logout` (revoke token) | `auth/AuthService.java` |
+| T024 | AuthController — 5 endpoints: POST /register, /login, /refresh, /logout, /ws-ticket; httpOnly cookie `refresh_token`; `app.cookie.secure` config | `auth/AuthController.java`, `config/SecurityConfig.java` (logout permitAll) |
+| T025 | Auth integration test — Testcontainers (Postgres 16 + Redis 7), MockMvc: register→login→refresh→logout happy path + token rotation + duplicate email + wrong password | `auth/AuthIntegrationTest.java` |
 
 ### In Progress
 
@@ -181,4 +186,4 @@ _(none)_
 
 ### Next
 
-T021 — RefreshTokenService
+T026 — UserDto + UpdateProfileRequest

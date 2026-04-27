@@ -77,3 +77,19 @@ dependencyManagement {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+// Load .env file vào environment cho bootRun (dev workflow)
+fun loadDotenv(): Map<String, String> {
+    val dotenv = file(".env")
+    if (!dotenv.exists()) return emptyMap()
+    return dotenv.readLines()
+        .filter { it.isNotBlank() && !it.startsWith("#") && it.contains("=") }
+        .associate { line ->
+            val idx = line.indexOf('=')
+            line.substring(0, idx).trim() to line.substring(idx + 1).trim()
+        }
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    environment(loadDotenv())
+}

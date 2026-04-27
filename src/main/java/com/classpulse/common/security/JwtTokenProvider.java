@@ -71,4 +71,8 @@ public class JwtTokenProvider {
     public String getName(Claims claims) {
         return claims.get("name", String.class);
     }
+
+    public long getAccessTokenExpirySeconds() {
+        return accessTokenExpirySeconds;
+    }
 }

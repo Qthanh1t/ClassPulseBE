@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//mnt/c/code/datn/**)",
+      "Bash(./gradlew compileJava compileTestJava)"
+    ]
+  }
+}
