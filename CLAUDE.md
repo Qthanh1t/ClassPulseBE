@@ -173,6 +173,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T017 | SecurityConfig — stateless, CSRF off, CORS, public routes, addFilterBefore JwtAuthFilter, `PasswordEncoder` BCrypt(12), `@EnableMethodSecurity` | `config/SecurityConfig.java` |
 | T018 | JwtAuthEntryPoint + JwtAccessDeniedHandler — JSON 401/403 dùng `ObjectMapper` + `ApiResponse.error(...)` | `common/security/JwtAuthEntryPoint.java`, `common/security/JwtAccessDeniedHandler.java` |
 | T019 | Auth DTOs — `RegisterRequest` (@Valid: email/password/name/role), `LoginRequest`, `AuthResponse` (user+accessToken+expiresIn) với `UserSummary.from(User)` factory | `auth/RegisterRequest.java`, `auth/LoginRequest.java`, `auth/AuthResponse.java` |
+| T020 | RefreshToken entity + repo — không extend BaseEntity (không có updated_at); `findByTokenHashAndRevokedFalse`, `revokeAllByUserId` (@Modifying bulk update) | `auth/RefreshToken.java`, `auth/RefreshTokenRepository.java` |
 
 ### In Progress
 
@@ -180,4 +181,4 @@ _(none)_
 
 ### Next
 
-T020 — RefreshToken entity + repo
+T021 — RefreshTokenService
