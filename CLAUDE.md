@@ -123,20 +123,23 @@ Auth levels: `[PUBLIC]` `[AUTH]` `[TEACHER]` `[STUDENT]` `[OWNER]` `[ADMIN]`
 ## Dev Setup
 
 ```bash
-# Start infrastructure
+# 1. Copy env và điền JWT_SECRET (chỉ lần đầu)
+cp .env.example .env
+
+# 2. Start infrastructure
 docker-compose up -d
 
-# Run app (Gradle)
-./gradlew bootRun --args='--spring.profiles.active=dev'
+# 3. Run app — build.gradle.kts tự load .env, SPRING_PROFILES_ACTIVE=dev đã có trong .env
+./gradlew bootRun
 
-# Run tests
+# Run tests (Testcontainers tự spin up DB + Redis riêng, không cần docker-compose)
 ./gradlew test
 
 # Build jar
 ./gradlew bootJar
 ```
 
-Env vars cần thiết (xem `.env.example`): `DB_URL`, `DB_USER`, `DB_PASSWORD`, `REDIS_HOST`, `JWT_SECRET`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`.
+Env vars đọc từ `.env` (auto-loaded bởi `bootRun` task trong `build.gradle.kts`). Xem `.env.example` để biết danh sách đầy đủ. Biến bắt buộc không có default: `JWT_SECRET`.
 
 ## Current Implementation Status
 
