@@ -162,7 +162,10 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 
 #### M02 — Auth (T011–T025)
 
-_(chưa bắt đầu)_
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T011 | Flyway V1: users — DDL `users` table + indexes | `db/migration/V1__create_users.sql` |
+| T012 | Flyway V2: refresh_tokens — DDL `refresh_tokens` table + indexes | `db/migration/V2__create_refresh_tokens.sql` |
 
 ### In Progress
 
@@ -170,4 +173,4 @@ _(none)_
 
 ### Next
 
-T011 — Flyway V1: `users` table DDL
+T013 — User entity + Role enum
