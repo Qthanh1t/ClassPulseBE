@@ -168,6 +168,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T012 | Flyway V2: refresh_tokens — DDL `refresh_tokens` table + indexes | `db/migration/V2__create_refresh_tokens.sql` |
 | T013 | User entity + Role enum — `@Entity` cho `users`, `Role` enum (TEACHER/STUDENT/ADMIN) với `AttributeConverter` sang lowercase | `user/User.java`, `user/Role.java` |
 | T014 | UserRepository — `JpaRepository<User, UUID>` + `findByEmail`, `existsByEmail` | `user/UserRepository.java` |
+| T015 | JwtTokenProvider — generate HS512 access token (sub/role/name/jti), validate, parseClaims, helper getters | `common/security/JwtTokenProvider.java` |
 
 ### In Progress
 
@@ -175,4 +176,4 @@ _(none)_
 
 ### Next
 
-T015 — JwtTokenProvider
+T016 — JwtAuthFilter
