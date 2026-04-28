@@ -201,6 +201,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T032 | Flyway V3: classrooms + memberships — DDL `classrooms` + `classroom_memberships`, indexes | `db/migration/V3__create_classrooms.sql` |
 | T033 | Classroom + Membership entities — `Classroom` extends `BaseEntity`; `ClassroomMembershipId` (`@Embeddable`, composite PK); `ClassroomMembership` (`@EmbeddedId`, `@MapsId`, `@CreatedDate` joinedAt, isActive) | `classroom/Classroom.java`, `classroom/ClassroomMembershipId.java`, `classroom/ClassroomMembership.java` |
 | T034 | ClassroomRepository + MembershipRepository — `findByTeacher_Id`, `findByStudentId` (JPQL join), `findByJoinCode`, `existsByJoinCode`, `existsByIdAndTeacher_Id`; Membership: `findByClassroom_Id`, `findByClassroom_IdAndStudent_Id`, `existsMembership` (isActive check) | `classroom/ClassroomRepository.java`, `classroom/MembershipRepository.java` |
+| T035 | ClassroomSecurityBean — `@Component("classroomSecurity")`; `isOwner(classroomId, auth)` dùng `existsByIdAndTeacher_Id`; `isMember(classroomId, auth)` kiểm tra teacher trước rồi active membership | `classroom/ClassroomSecurityBean.java` |
 
 ### In Progress
 
@@ -208,4 +209,4 @@ _(none)_
 
 ### Next
 
-T035 — ClassroomSecurityBean
+T036 — Classroom DTOs
