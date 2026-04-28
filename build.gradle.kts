@@ -60,6 +60,9 @@ dependencies {
     // Hypersistence Utils — UUID[] PostgreSQL array mapping (Hibernate 6.x)
     implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.0")
 
+    // MinIO Java SDK
+    implementation("io.minio:minio:8.5.12")
+
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

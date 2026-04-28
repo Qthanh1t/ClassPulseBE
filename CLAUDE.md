@@ -183,11 +183,16 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T024 | AuthController — 5 endpoints: POST /register, /login, /refresh, /logout, /ws-ticket; httpOnly cookie `refresh_token`; `app.cookie.secure` config | `auth/AuthController.java`, `config/SecurityConfig.java` (logout permitAll) |
 | T025 | Auth integration test — Testcontainers (Postgres 16 + Redis 7), MockMvc: register→login→refresh→logout happy path + token rotation + duplicate email + wrong password | `auth/AuthIntegrationTest.java` |
 
-#### M03 — User (T026)
+#### M03 — User (T026–T030)
 
 | Task | Mô tả | File(s) |
 |------|-------|---------|
 | T026 | UserDto + UpdateProfileRequest — `UserDto` với nested `Stats` (classroomsCount, sessionsCount, questionsAsked, studentsReached), `@JsonInclude(NON_NULL)`, 2 factory `from(User)` / `from(User, Stats)`; `UpdateProfileRequest` (@Valid: name, optional avatarColor hex pattern) | `user/UserDto.java`, `user/UpdateProfileRequest.java` |
+| T027 | UserService (getMe) — load user by UUID, build `UserDto` với stats; stats trả 0 cho đến khi M04/M09/M10 triển khai | `user/UserService.java` |
+| T028 | UserService (updateProfile) — update name + avatarColor (nếu có), trả `UserDto` đã cập nhật | `user/UserService.java` |
+| T029 | UserService (uploadAvatar) — validate ext (jpg/png/webp) + size (max 5MB), upload lên MinIO `avatars/{userId}.{ext}`, update `avatar_url`, trả avatarUrl string | `user/UserService.java` |
+| T030 | MinioConfig — `MinioClient` bean; tạo bucket nếu chưa có + set public-read policy; thêm `io.minio:minio:8.5.12` vào `build.gradle.kts` | `config/MinioConfig.java`, `build.gradle.kts` |
+| T031 | UserController — 5 endpoints: `GET /me`, `PUT /me`, `POST /me/avatar`, `GET /users` (ADMIN, paginated + role/search filter), `PUT /users/:id` (ADMIN ban/role); `AdminUpdateUserRequest` DTO; `findFiltered` JPQL query trong `UserRepository` | `user/UserController.java`, `user/AdminUpdateUserRequest.java`, `user/UserRepository.java`, `user/UserService.java` |
 
 ### In Progress
 
@@ -195,4 +200,4 @@ _(none)_
 
 ### Next
 
-T027 — UserService (getMe)
+T032 — Flyway V3: classrooms + memberships
