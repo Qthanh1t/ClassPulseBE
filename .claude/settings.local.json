@@ -3,7 +3,8 @@
     "allow": [
       "Read(//mnt/c/code/datn/**)",
       "Bash(./gradlew compileJava compileTestJava)",
-      "Bash(./gradlew compileJava -q)"
+      "Bash(./gradlew compileJava -q)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }
