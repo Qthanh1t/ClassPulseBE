@@ -199,6 +199,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | Task | Mô tả | File(s) |
 |------|-------|---------|
 | T032 | Flyway V3: classrooms + memberships — DDL `classrooms` + `classroom_memberships`, indexes | `db/migration/V3__create_classrooms.sql` |
+| T033 | Classroom + Membership entities — `Classroom` extends `BaseEntity`; `ClassroomMembershipId` (`@Embeddable`, composite PK); `ClassroomMembership` (`@EmbeddedId`, `@MapsId`, `@CreatedDate` joinedAt, isActive) | `classroom/Classroom.java`, `classroom/ClassroomMembershipId.java`, `classroom/ClassroomMembership.java` |
 
 ### In Progress
 
@@ -206,4 +207,4 @@ _(none)_
 
 ### Next
 
-T033 — Classroom + Membership entities (JPA)
+T034 — ClassroomRepository + MembershipRepository
