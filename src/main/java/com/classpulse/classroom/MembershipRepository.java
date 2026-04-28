@@ -13,4 +13,6 @@ public interface MembershipRepository extends JpaRepository<ClassroomMembership,
     Optional<ClassroomMembership> findByClassroom_IdAndStudent_Id(UUID classroomId, UUID studentId);
 
     boolean existsByClassroom_IdAndStudent_IdAndIsActiveTrue(UUID classroomId, UUID studentId);
+
+    long countByClassroom_IdAndIsActiveTrue(UUID classroomId);
 }

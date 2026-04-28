@@ -202,6 +202,10 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T033 | Classroom + Membership entities — `Classroom` extends `BaseEntity`; `ClassroomMembershipId` (`@Embeddable`, composite PK); `ClassroomMembership` (`@EmbeddedId`, `@MapsId`, `@CreatedDate` joinedAt, isActive) | `classroom/Classroom.java`, `classroom/ClassroomMembershipId.java`, `classroom/ClassroomMembership.java` |
 | T034 | ClassroomRepository + MembershipRepository — `findByTeacher_Id`, `findByStudentId` (JPQL join), `findByJoinCode`, `existsByJoinCode`, `existsByIdAndTeacher_Id`; Membership: `findByClassroom_Id`, `findByClassroom_IdAndStudent_Id`, `existsMembership` (isActive check) | `classroom/ClassroomRepository.java`, `classroom/MembershipRepository.java` |
 | T035 | ClassroomSecurityBean — `@Component("classroomSecurity")`; `isOwner(classroomId, auth)` dùng `existsByIdAndTeacher_Id`; `isMember(classroomId, auth)` kiểm tra teacher trước rồi active membership | `classroom/ClassroomSecurityBean.java` |
+| T036 | Classroom DTOs — `CreateClassroomRequest`, `UpdateClassroomRequest`, `JoinClassroomRequest`; `ClassroomDto` (nested `TeacherInfo`, `NextSchedule` nullable); `MemberDto`; `JoinResponse` record | `classroom/Create|UpdateClassroomRequest.java`, `classroom/JoinClassroomRequest.java`, `classroom/ClassroomDto.java`, `classroom/MemberDto.java`, `classroom/JoinResponse.java` |
+| T037 | ClassroomService (CRUD) — `create` (generateUniqueJoinCode loop), `listForUser` (teacher vs student branch), `getById`, `update`, `archive` (soft delete) | `classroom/ClassroomService.java` |
+| T038 | ClassroomService (join + members) — `join` (404 not found, 409 duplicate, re-activate kicked membership), `listMembers`, `kickMember`, `regenerateCode` | `classroom/ClassroomService.java` |
+| T039 | ClassroomController — 9 endpoints: GET|POST /classrooms, GET|PUT|DELETE /{id}, POST /join, GET|DELETE /{id}/members[/{studentId}], POST /{id}/join-code/regenerate; `@PreAuthorize` isOwner/isMember/hasRole | `classroom/ClassroomController.java` |
 
 ### In Progress
 
@@ -209,4 +213,4 @@ _(none)_
 
 ### Next
 
-T036 — Classroom DTOs
+T040 — Flyway V4: posts + attachments
