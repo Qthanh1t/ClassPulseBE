@@ -194,10 +194,16 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T030 | MinioConfig — `MinioClient` bean; tạo bucket nếu chưa có + set public-read policy; thêm `io.minio:minio:8.5.12` vào `build.gradle.kts` | `config/MinioConfig.java`, `build.gradle.kts` |
 | T031 | UserController — 5 endpoints: `GET /me`, `PUT /me`, `POST /me/avatar`, `GET /users` (ADMIN, paginated + role/search filter), `PUT /users/:id` (ADMIN ban/role); `AdminUpdateUserRequest` DTO; `findFiltered` JPQL query trong `UserRepository` | `user/UserController.java`, `user/AdminUpdateUserRequest.java`, `user/UserRepository.java`, `user/UserService.java` |
 
+#### M04 — Classroom (T032–T039)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T032 | Flyway V3: classrooms + memberships — DDL `classrooms` + `classroom_memberships`, indexes | `db/migration/V3__create_classrooms.sql` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T032 — Flyway V3: classrooms + memberships
+T033 — Classroom + Membership entities (JPA)
