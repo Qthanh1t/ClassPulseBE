@@ -183,10 +183,16 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T024 | AuthController — 5 endpoints: POST /register, /login, /refresh, /logout, /ws-ticket; httpOnly cookie `refresh_token`; `app.cookie.secure` config | `auth/AuthController.java`, `config/SecurityConfig.java` (logout permitAll) |
 | T025 | Auth integration test — Testcontainers (Postgres 16 + Redis 7), MockMvc: register→login→refresh→logout happy path + token rotation + duplicate email + wrong password | `auth/AuthIntegrationTest.java` |
 
+#### M03 — User (T026)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T026 | UserDto + UpdateProfileRequest — `UserDto` với nested `Stats` (classroomsCount, sessionsCount, questionsAsked, studentsReached), `@JsonInclude(NON_NULL)`, 2 factory `from(User)` / `from(User, Stats)`; `UpdateProfileRequest` (@Valid: name, optional avatarColor hex pattern) | `user/UserDto.java`, `user/UpdateProfileRequest.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T026 — UserDto + UpdateProfileRequest
+T027 — UserService (getMe)
