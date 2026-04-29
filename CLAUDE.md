@@ -212,7 +212,10 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | Task | Mô tả | File(s) |
 |------|-------|---------|
 | T040 | Flyway V4: posts + attachments — DDL `posts` + `post_attachments`, composite index `(classroom_id, created_at DESC)`, FK với `ON DELETE CASCADE` | `db/migration/V4__create_posts.sql` |
-| T041 | Post + PostAttachment entities — `Post` extends `BaseEntity` (ManyToOne Classroom/User lazy, OneToMany attachments cascade+orphanRemoval); `PostAttachment` entity riêng (không extend BaseEntity, dùng `uploaded_at` thay vì `created_at`/`updated_at`) | `post/Post.java`, `post/PostAttachment.java` |
+| T041 | Post + PostAttachment entities — `Post` extends `BaseEntity` (ManyToOne Classroom/User lazy, OneToMany attachments cascade+orphanRemoval, `@BatchSize(20)` để tránh N+1); `PostAttachment` entity riêng (không extend BaseEntity, dùng `uploaded_at`) | `post/Post.java`, `post/PostAttachment.java` |
+| T042 | PostRepository + AttachmentRepository — `findByClassroomId` JPQL paginated với JOIN FETCH author + countQuery riêng; `findByIdAndClassroomId` để load post kèm author; `findByIdAndPost_Id` trong AttachmentRepo | `post/PostRepository.java`, `post/PostAttachmentRepository.java` |
+| T043 | PostService — `list` (paginated, `Map.Entry<List, PageMeta>`), `create`, `update`/`delete` (assertCanEdit: author or teacher), `addAttachments` (upload MinIO `post-attachments/{postId}/{uuid}.{ext}`, max 50MB), `deleteAttachment` (remove MinIO + DB); `PostDto` với nested `AuthorInfo` + `AttachmentDto`; `CreatePostRequest`, `UpdatePostRequest` | `post/PostService.java`, `post/PostDto.java`, `post/Create|UpdatePostRequest.java` |
+| T044 | PostController — 6 endpoints: GET/POST /{classroomId}/posts, PUT/DELETE /{classroomId}/posts/{postId}, POST/DELETE /{classroomId}/posts/{postId}/attachments[/{attachmentId}]; tất cả `@PreAuthorize("@classroomSecurity.isMember(...)")`, author/teacher check trong service | `post/PostController.java` |
 
 ### In Progress
 
@@ -220,4 +223,4 @@ _(none)_
 
 ### Next
 
-T042 — PostRepository + AttachmentRepository
+T045 — Flyway V5: schedules

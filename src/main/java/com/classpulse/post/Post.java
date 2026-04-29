@@ -5,6 +5,7 @@ import com.classpulse.common.BaseEntity;
 import com.classpulse.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class Post extends BaseEntity {
     private String content;
 
     @Builder.Default
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<PostAttachment> attachments = new ArrayList<>();
 }
