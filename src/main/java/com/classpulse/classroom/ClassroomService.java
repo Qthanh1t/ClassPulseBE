@@ -44,6 +44,7 @@ public class ClassroomService {
     }
 
     // T037 — list for current user (teacher sees own classrooms, student sees joined classrooms)
+    @Transactional(readOnly = true)
     public List<ClassroomDto> listForUser(UUID userId, Role role) {
         List<Classroom> classrooms = (role == Role.TEACHER)
                 ? classroomRepository.findByTeacher_IdAndIsArchivedFalse(userId)
@@ -55,6 +56,7 @@ public class ClassroomService {
     }
 
     // T037 — get by id
+    @Transactional(readOnly = true)
     public ClassroomDto getById(UUID classroomId) {
         Classroom classroom = findClassroom(classroomId);
         return ClassroomDto.from(classroom, studentCount(classroomId));
@@ -116,6 +118,7 @@ public class ClassroomService {
     }
 
     // T038 — list active members
+    @Transactional(readOnly = true)
     public List<MemberDto> listMembers(UUID classroomId) {
         findClassroom(classroomId);
         return membershipRepository.findByClassroom_IdAndIsActiveTrue(classroomId)

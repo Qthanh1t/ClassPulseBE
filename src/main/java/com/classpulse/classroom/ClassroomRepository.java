@@ -10,7 +10,8 @@ import java.util.UUID;
 
 public interface ClassroomRepository extends JpaRepository<Classroom, UUID> {
 
-    List<Classroom> findByTeacher_IdAndIsArchivedFalse(UUID teacherId);
+    @Query("SELECT c FROM Classroom c JOIN FETCH c.teacher WHERE c.teacher.id = :teacherId AND c.isArchived = false")
+    List<Classroom> findByTeacher_IdAndIsArchivedFalse(@Param("teacherId") UUID teacherId);
 
     Optional<Classroom> findByJoinCode(String joinCode);
 
@@ -19,6 +20,7 @@ public interface ClassroomRepository extends JpaRepository<Classroom, UUID> {
     boolean existsByIdAndTeacher_Id(UUID id, UUID teacherId);
 
     @Query("SELECT c FROM Classroom c " +
+           "JOIN FETCH c.teacher " +
            "JOIN ClassroomMembership m ON m.classroom = c " +
            "WHERE m.student.id = :studentId AND m.isActive = true AND c.isArchived = false")
     List<Classroom> findByStudentId(@Param("studentId") UUID studentId);
