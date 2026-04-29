@@ -207,10 +207,17 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T038 | ClassroomService (join + members) — `join` (404 not found, 409 duplicate, re-activate kicked membership), `listMembers`, `kickMember`, `regenerateCode` | `classroom/ClassroomService.java` |
 | T039 | ClassroomController — 9 endpoints: GET|POST /classrooms, GET|PUT|DELETE /{id}, POST /join, GET|DELETE /{id}/members[/{studentId}], POST /{id}/join-code/regenerate; `@PreAuthorize` isOwner/isMember/hasRole | `classroom/ClassroomController.java` |
 
+#### M05 — Post/Feed (T040–T041)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T040 | Flyway V4: posts + attachments — DDL `posts` + `post_attachments`, composite index `(classroom_id, created_at DESC)`, FK với `ON DELETE CASCADE` | `db/migration/V4__create_posts.sql` |
+| T041 | Post + PostAttachment entities — `Post` extends `BaseEntity` (ManyToOne Classroom/User lazy, OneToMany attachments cascade+orphanRemoval); `PostAttachment` entity riêng (không extend BaseEntity, dùng `uploaded_at` thay vì `created_at`/`updated_at`) | `post/Post.java`, `post/PostAttachment.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T040 — Flyway V4: posts + attachments
+T042 — PostRepository + AttachmentRepository
