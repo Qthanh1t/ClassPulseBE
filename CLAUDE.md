@@ -217,10 +217,18 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T043 | PostService — `list` (paginated, `Map.Entry<List, PageMeta>`), `create`, `update`/`delete` (assertCanEdit: author or teacher), `addAttachments` (upload MinIO `post-attachments/{postId}/{uuid}.{ext}`, max 50MB), `deleteAttachment` (remove MinIO + DB); `PostDto` với nested `AuthorInfo` + `AttachmentDto`; `CreatePostRequest`, `UpdatePostRequest` | `post/PostService.java`, `post/PostDto.java`, `post/Create|UpdatePostRequest.java` |
 | T044 | PostController — 6 endpoints: GET/POST /{classroomId}/posts, PUT/DELETE /{classroomId}/posts/{postId}, POST/DELETE /{classroomId}/posts/{postId}/attachments[/{attachmentId}]; tất cả `@PreAuthorize("@classroomSecurity.isMember(...)")`, author/teacher check trong service | `post/PostController.java` |
 
+#### M06 — Schedule (T045–T047)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T045 | Flyway V5: schedules — DDL `schedules` + index `(classroom_id, scheduled_date)`; có `updated_at` để extend BaseEntity | `db/migration/V5__create_schedules.sql` |
+| T046 | Schedule entity + ScheduleRepository — extends BaseEntity; LocalDate/LocalTime fields; `findByClassroomId`, `findByClassroomIdAndDateBetween`, `findFirstBy...GreaterThanEqual` (cho nextSchedule), `findByIdAndClassroom_Id` | `schedule/Schedule.java`, `schedule/ScheduleRepository.java` |
+| T047 | ScheduleService + ScheduleController — `list` (optional from/to filter), `create`, `update` (partial update), `delete` (session check deferred to M09); 4 endpoints `[MEMBER]`/`[OWNER]`; ClassroomDto.nextSchedule và ClassroomService updated để inject ScheduleRepository | `schedule/ScheduleService.java`, `schedule/ScheduleController.java`, `schedule/ScheduleDto.java`, `schedule/Create|UpdateScheduleRequest.java`, `classroom/ClassroomDto.java`, `classroom/ClassroomService.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T045 — Flyway V5: schedules
+T048 — Flyway V6: classroom_documents

@@ -4,6 +4,8 @@ import com.classpulse.common.exception.BusinessException;
 import com.classpulse.common.exception.ConflictException;
 import com.classpulse.common.exception.NotFoundException;
 import com.classpulse.common.util.JoinCodeGenerator;
+import com.classpulse.schedule.Schedule;
+import com.classpulse.schedule.ScheduleRepository;
 import com.classpulse.user.Role;
 import com.classpulse.user.User;
 import com.classpulse.user.UserRepository;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +26,7 @@ public class ClassroomService {
     private final ClassroomRepository classroomRepository;
     private final MembershipRepository membershipRepository;
     private final UserRepository userRepository;
+    private final ScheduleRepository scheduleRepository;
 
     // T037 — create
     @Transactional
@@ -50,8 +54,14 @@ public class ClassroomService {
                 ? classroomRepository.findByTeacher_IdAndIsArchivedFalse(userId)
                 : classroomRepository.findByStudentId(userId);
 
+        LocalDate today = LocalDate.now();
         return classrooms.stream()
-                .map(c -> ClassroomDto.from(c, studentCount(c.getId())))
+                .map(c -> {
+                    Schedule next = scheduleRepository
+                            .findFirstByClassroom_IdAndScheduledDateGreaterThanEqualOrderByScheduledDateAscStartTimeAsc(c.getId(), today)
+                            .orElse(null);
+                    return ClassroomDto.from(c, studentCount(c.getId()), next);
+                })
                 .toList();
     }
 
@@ -59,7 +69,10 @@ public class ClassroomService {
     @Transactional(readOnly = true)
     public ClassroomDto getById(UUID classroomId) {
         Classroom classroom = findClassroom(classroomId);
-        return ClassroomDto.from(classroom, studentCount(classroomId));
+        Schedule next = scheduleRepository
+                .findFirstByClassroom_IdAndScheduledDateGreaterThanEqualOrderByScheduledDateAscStartTimeAsc(classroomId, LocalDate.now())
+                .orElse(null);
+        return ClassroomDto.from(classroom, studentCount(classroomId), next);
     }
 
     // T037 — update

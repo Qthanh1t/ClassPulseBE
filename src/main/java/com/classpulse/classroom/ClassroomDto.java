@@ -1,5 +1,6 @@
 package com.classpulse.classroom;
 
+import com.classpulse.schedule.Schedule;
 import com.classpulse.user.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -40,7 +41,6 @@ public class ClassroomDto {
         }
     }
 
-    // Populated in M06 — always null until Schedule module is implemented
     @Getter
     @Builder
     public static class NextSchedule {
@@ -49,9 +49,23 @@ public class ClassroomDto {
         private String scheduledDate;
         private String startTime;
         private String endTime;
+
+        public static NextSchedule from(Schedule s) {
+            return NextSchedule.builder()
+                    .id(s.getId())
+                    .title(s.getTitle())
+                    .scheduledDate(s.getScheduledDate().toString())
+                    .startTime(String.format("%02d:%02d", s.getStartTime().getHour(), s.getStartTime().getMinute()))
+                    .endTime(String.format("%02d:%02d", s.getEndTime().getHour(), s.getEndTime().getMinute()))
+                    .build();
+        }
     }
 
     public static ClassroomDto from(Classroom classroom, int studentCount) {
+        return from(classroom, studentCount, null);
+    }
+
+    public static ClassroomDto from(Classroom classroom, int studentCount, Schedule nextSchedule) {
         return ClassroomDto.builder()
                 .id(classroom.getId())
                 .name(classroom.getName())
@@ -60,6 +74,7 @@ public class ClassroomDto {
                 .joinCode(classroom.getJoinCode())
                 .teacher(TeacherInfo.from(classroom.getTeacher()))
                 .studentCount(studentCount)
+                .nextSchedule(nextSchedule != null ? NextSchedule.from(nextSchedule) : null)
                 .isArchived(classroom.isArchived())
                 .createdAt(classroom.getCreatedAt())
                 .build();
