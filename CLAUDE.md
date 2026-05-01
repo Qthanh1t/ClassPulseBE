@@ -233,10 +233,17 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T049 | ClassroomDocument entity + ClassroomDocumentRepository — không extend BaseEntity (chỉ có uploaded_at); `findByClassroomId` paginated (JOIN FETCH uploader), `findAllByClassroomId`, `findByIdAndClassroom_Id`; thêm `findByPost_ClassroomId` + `findAllByPost_ClassroomId` vào `PostAttachmentRepository` cho merge list | `document/ClassroomDocument.java`, `document/ClassroomDocumentRepository.java`, `post/PostAttachmentRepository.java` |
 | T050 | DocumentService + DocumentController — `list` (source=direct/post/all; source=all merge 2 nguồn in-memory sort uploadedAt DESC + manual paginate), `upload` (multipart, MinIO `classroom-documents/{classroomId}/{uuid}.{ext}`, max 50MB), `delete` (chỉ xóa direct upload); 3 endpoints: GET/POST /{classroomId}/documents, DELETE /{classroomId}/documents/{documentId}; `[MEMBER]`/`[OWNER]` auth | `document/DocumentService.java`, `document/DocumentController.java`, `document/DocumentDto.java` |
 
+#### M08 — Upload (T051–T052)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T051 | UploadService — validate fileSizeBytes (avatar ≤5MB, others ≤50MB), build objectKey `uploads/{year}/{month}/{uuid}-{sanitizedName}`, generate MinIO presigned PUT URL (5 min / 300s expiry), trả `PresignedUrlDto` (fileName, fileKey, uploadUrl, expiresAt) | `upload/UploadService.java`, `upload/UploadPresignRequest.java`, `upload/PresignedUrlDto.java` |
+| T052 | UploadController — `POST /api/v1/uploads/presign [AUTH]`; `@Valid UploadPresignRequest` (files 1–10, purpose: post_attachment/classroom_document/avatar) | `upload/UploadController.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T051 — UploadService (MinIO presigned PUT URL)
+T053 — Flyway V7: sessions + presences + summaries
