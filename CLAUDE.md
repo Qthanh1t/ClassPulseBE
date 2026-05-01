@@ -225,10 +225,18 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T046 | Schedule entity + ScheduleRepository — extends BaseEntity; LocalDate/LocalTime fields; `findByClassroomId`, `findByClassroomIdAndDateBetween`, `findFirstBy...GreaterThanEqual` (cho nextSchedule), `findByIdAndClassroom_Id` | `schedule/Schedule.java`, `schedule/ScheduleRepository.java` |
 | T047 | ScheduleService + ScheduleController — `list` (optional from/to filter), `create`, `update` (partial update), `delete` (session check deferred to M09); 4 endpoints `[MEMBER]`/`[OWNER]`; ClassroomDto.nextSchedule và ClassroomService updated để inject ScheduleRepository | `schedule/ScheduleService.java`, `schedule/ScheduleController.java`, `schedule/ScheduleDto.java`, `schedule/Create|UpdateScheduleRequest.java`, `classroom/ClassroomDto.java`, `classroom/ClassroomService.java` |
 
+#### M07 — Document (T048–T050)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T048 | Flyway V6: classroom_documents — DDL `classroom_documents` (id, classroom_id FK, uploader_id FK, file_name, storage_key, file_size_bytes, file_ext, uploaded_at) + `idx_documents_classroom` | `db/migration/V6__create_documents.sql` |
+| T049 | ClassroomDocument entity + ClassroomDocumentRepository — không extend BaseEntity (chỉ có uploaded_at); `findByClassroomId` paginated (JOIN FETCH uploader), `findAllByClassroomId`, `findByIdAndClassroom_Id`; thêm `findByPost_ClassroomId` + `findAllByPost_ClassroomId` vào `PostAttachmentRepository` cho merge list | `document/ClassroomDocument.java`, `document/ClassroomDocumentRepository.java`, `post/PostAttachmentRepository.java` |
+| T050 | DocumentService + DocumentController — `list` (source=direct/post/all; source=all merge 2 nguồn in-memory sort uploadedAt DESC + manual paginate), `upload` (multipart, MinIO `classroom-documents/{classroomId}/{uuid}.{ext}`, max 50MB), `delete` (chỉ xóa direct upload); 3 endpoints: GET/POST /{classroomId}/documents, DELETE /{classroomId}/documents/{documentId}; `[MEMBER]`/`[OWNER]` auth | `document/DocumentService.java`, `document/DocumentController.java`, `document/DocumentDto.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T048 — Flyway V6: classroom_documents
+T051 — UploadService (MinIO presigned PUT URL)
