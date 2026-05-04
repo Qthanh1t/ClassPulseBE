@@ -240,10 +240,17 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T051 | UploadService — validate fileSizeBytes (avatar ≤5MB, others ≤50MB), build objectKey `uploads/{year}/{month}/{uuid}-{sanitizedName}`, generate MinIO presigned PUT URL (5 min / 300s expiry), trả `PresignedUrlDto` (fileName, fileKey, uploadUrl, expiresAt) | `upload/UploadService.java`, `upload/UploadPresignRequest.java`, `upload/PresignedUrlDto.java` |
 | T052 | UploadController — `POST /api/v1/uploads/presign [AUTH]`; `@Valid UploadPresignRequest` (files 1–10, purpose: post_attachment/classroom_document/avatar) | `upload/UploadController.java` |
 
+#### M09 — Session (T053–T054)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T053 | Flyway V7: sessions + presences + summaries — DDL `sessions` (status CHECK waiting/active/ended, partial index WHERE status='active'), `session_presences` (composite PK session_id+student_id, left_at nullable), `session_student_summaries` (composite PK, NUMERIC(5,2) score_percent) | `db/migration/V7__create_sessions.sql` |
+| T054 | Session + SessionPresence + SessionStudentSummary entities — `Session` không extend BaseEntity (không có updated_at), `SessionStatus` enum lowercase, `SessionPresenceId`/`SessionStudentSummaryId` embeddable composite PKs, `SessionPresence` dùng `@EmbeddedId`+`@MapsId`, `SessionStudentSummary` dùng `BigDecimal` cho scorePercent | `session/Session.java`, `session/SessionStatus.java`, `session/SessionPresence.java`, `session/SessionPresenceId.java`, `session/SessionStudentSummary.java`, `session/SessionStudentSummaryId.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T053 — Flyway V7: sessions + presences + summaries
+T055 — SessionRepository
