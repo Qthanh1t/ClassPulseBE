@@ -246,6 +246,8 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 |------|-------|---------|
 | T053 | Flyway V7: sessions + presences + summaries — DDL `sessions` (status CHECK waiting/active/ended, partial index WHERE status='active'), `session_presences` (composite PK session_id+student_id, left_at nullable), `session_student_summaries` (composite PK, NUMERIC(5,2) score_percent) | `db/migration/V7__create_sessions.sql` |
 | T054 | Session + SessionPresence + SessionStudentSummary entities — `Session` không extend BaseEntity (không có updated_at), `SessionStatus` enum lowercase, `SessionPresenceId`/`SessionStudentSummaryId` embeddable composite PKs, `SessionPresence` dùng `@EmbeddedId`+`@MapsId`, `SessionStudentSummary` dùng `BigDecimal` cho scorePercent | `session/Session.java`, `session/SessionStatus.java`, `session/SessionPresence.java`, `session/SessionPresenceId.java`, `session/SessionStudentSummary.java`, `session/SessionStudentSummaryId.java` |
+| T055 | SessionRepository — `findByClassroomId` paginated (JOIN FETCH teacher, ORDER BY createdAt DESC), `findActiveByClassroomId` (status=active, dùng partial index), `findTeacherIdById` (JPQL projection → Optional<UUID>), `findByIdAndClassroom_Id` | `session/SessionRepository.java` |
+| T056 | SessionPresenceRepository — `findBySessionId` (JOIN FETCH student), `findById_SessionIdAndId_StudentId`, `findActiveStudentIds` (left_at IS NULL → List<UUID>), `updateLeftAt` (@Modifying JPQL UPDATE) | `session/SessionPresenceRepository.java` |
 
 ### In Progress
 
@@ -253,4 +255,4 @@ _(none)_
 
 ### Next
 
-T055 — SessionRepository
+T057 — SessionSecurityBean
