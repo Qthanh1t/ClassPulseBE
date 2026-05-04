@@ -266,6 +266,8 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T067 | QuestionTimerService — `ScheduledExecutorService` 4 threads, `ConcurrentHashMap<UUID, ScheduledFuture<?>>` activeTimers; `startTimer(questionId, seconds, sessionId)`, `cancelTimer(questionId)`; `autoEndQuestion` dùng `TransactionTemplate` (không dùng `@Transactional` vì gọi từ timer thread ngoài proxy); R02 recovery: `@EventListener(ApplicationStartedEvent)` → reschedule remaining / auto-end expired; `QuestionRepository.findAllRunning()` thêm JOIN FETCH session | `question/QuestionTimerService.java`, `question/QuestionRepository.java` (thêm `findAllRunning`) |
 | T068 | QuestionService (CRUD + start) — `list` (findBySessionId → QuestionDto), `create` (validate options cho MCQ, auto-increment order, cascade save options), `start` (validate session active + no running question, set running+startedAt+endsAt, Redis SET `active_question` TTL 5min, startTimer nếu có timerSeconds); broadcast TODO M13 | `question/QuestionService.java` |
 | T069 | QuestionService (end + stats) — `end` (validate running, set ended+endedAt, cancelTimer, Redis DELETE active_question); `getStats` (answers JOIN FETCH student, optionDistribution từ selectedOptionIds UUID[], confidenceBreakdown groupingBy, silentStudents = activePresence − answered); broadcast TODO M13 | `question/QuestionService.java`, `question/StudentAnswerRepository.java` (thêm JOIN FETCH) |
+| T070 | SilentStudentDetector — `@Scheduled(fixedDelay=10_000)`: loop `findActiveIds()`, get `active_question` từ Redis, compute `silent = presence − answered`, log.debug + broadcast TODO M13; thêm `findActiveIds()` vào `SessionRepository`; `@EnableScheduling` thêm vào `ClasspulseApplication` | `question/SilentStudentDetector.java`, `session/SessionRepository.java`, `ClasspulseApplication.java` |
+| T071 | QuestionController — 5 endpoints: GET /questions [AUTH], POST /questions [sessionSecurity.isOwner], POST /questions/{qid}/start [OWNER], POST /questions/{qid}/end [OWNER], GET /questions/{qid}/stats [OWNER]; class-level `@RequestMapping("/api/v1/sessions/{sessionId}")` | `question/QuestionController.java` |
 
 ### In Progress
 
@@ -273,4 +275,4 @@ _(none)_
 
 ### Next
 
-T070 — SilentStudentDetector
+T072 — StudentAnswerService (submit)

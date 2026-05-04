@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,4 +25,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     Optional<Session> findByIdAndClassroom_Id(UUID id, UUID classroomId);
 
     boolean existsBySchedule_Id(UUID scheduleId);
+
+    @Query("SELECT s.id FROM Session s WHERE s.status = com.classpulse.session.SessionStatus.active")
+    List<UUID> findActiveIds();
 }
