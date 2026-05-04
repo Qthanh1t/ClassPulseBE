@@ -248,6 +248,8 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T054 | Session + SessionPresence + SessionStudentSummary entities — `Session` không extend BaseEntity (không có updated_at), `SessionStatus` enum lowercase, `SessionPresenceId`/`SessionStudentSummaryId` embeddable composite PKs, `SessionPresence` dùng `@EmbeddedId`+`@MapsId`, `SessionStudentSummary` dùng `BigDecimal` cho scorePercent | `session/Session.java`, `session/SessionStatus.java`, `session/SessionPresence.java`, `session/SessionPresenceId.java`, `session/SessionStudentSummary.java`, `session/SessionStudentSummaryId.java` |
 | T055 | SessionRepository — `findByClassroomId` paginated (JOIN FETCH teacher, ORDER BY createdAt DESC), `findActiveByClassroomId` (status=active, dùng partial index), `findTeacherIdById` (JPQL projection → Optional<UUID>), `findByIdAndClassroom_Id` | `session/SessionRepository.java` |
 | T056 | SessionPresenceRepository — `findBySessionId` (JOIN FETCH student), `findById_SessionIdAndId_StudentId`, `findActiveStudentIds` (left_at IS NULL → List<UUID>), `updateLeftAt` (@Modifying JPQL UPDATE) | `session/SessionPresenceRepository.java` |
+| T057 | SessionSecurityBean — `@Component("sessionSecurity")`; `isOwner(sessionId, auth)` dùng `findTeacherIdById`; `isParticipant(sessionId, auth)` kiểm tra teacher trước (role+findTeacherId) rồi student presence record | `session/SessionSecurityBean.java` |
+| T058 | Session DTOs — `CreateSessionRequest` (scheduleId nullable); `SessionDto` (@JsonInclude NON_NULL, factory `forStart`+`forListItem`); `SessionDetailDto` (nested TeacherInfo, factory `from`); `PresenceDto` (studentId, name, avatarColor, joinedAt, isOnline, factory `from(presence, isOnline)`) | `session/CreateSessionRequest.java`, `session/SessionDto.java`, `session/SessionDetailDto.java`, `session/PresenceDto.java` |
 
 ### In Progress
 
@@ -255,4 +257,4 @@ _(none)_
 
 ### Next
 
-T057 — SessionSecurityBean
+T059 — SessionService (start)
