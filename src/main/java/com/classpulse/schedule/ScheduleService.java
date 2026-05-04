@@ -1,7 +1,9 @@
 package com.classpulse.schedule;
 
 import com.classpulse.classroom.ClassroomRepository;
+import com.classpulse.common.exception.BusinessException;
 import com.classpulse.common.exception.NotFoundException;
+import com.classpulse.session.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final ClassroomRepository classroomRepository;
+    private final SessionRepository sessionRepository;
 
     @Transactional(readOnly = true)
     public List<ScheduleDto> list(UUID classroomId, LocalDate from, LocalDate to) {
@@ -59,7 +62,9 @@ public class ScheduleService {
     @Transactional
     public void delete(UUID classroomId, UUID scheduleId) {
         Schedule schedule = findSchedule(scheduleId, classroomId);
-        // Session existence check will be added in M09 when SessionRepository is available
+        if (sessionRepository.existsBySchedule_Id(scheduleId)) {
+            throw new BusinessException("SCHEDULE_HAS_SESSIONS", "Cannot delete a schedule that has sessions");
+        }
         scheduleRepository.delete(schedule);
         log.info("Deleted schedule {} from classroom {}", scheduleId, classroomId);
     }

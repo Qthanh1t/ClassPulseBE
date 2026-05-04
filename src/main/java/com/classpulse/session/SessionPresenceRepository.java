@@ -20,6 +20,8 @@ public interface SessionPresenceRepository extends JpaRepository<SessionPresence
     @Query("SELECT p.id.studentId FROM SessionPresence p WHERE p.session.id = :sessionId AND p.leftAt IS NULL")
     List<UUID> findActiveStudentIds(@Param("sessionId") UUID sessionId);
 
+    long countById_SessionId(UUID sessionId);
+
     @Modifying
     @Query("UPDATE SessionPresence p SET p.leftAt = :leftAt WHERE p.session.id = :sessionId AND p.student.id = :studentId")
     int updateLeftAt(@Param("sessionId") UUID sessionId, @Param("studentId") UUID studentId, @Param("leftAt") Instant leftAt);

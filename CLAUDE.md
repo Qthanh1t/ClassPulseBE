@@ -250,6 +250,10 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T056 | SessionPresenceRepository — `findBySessionId` (JOIN FETCH student), `findById_SessionIdAndId_StudentId`, `findActiveStudentIds` (left_at IS NULL → List<UUID>), `updateLeftAt` (@Modifying JPQL UPDATE) | `session/SessionPresenceRepository.java` |
 | T057 | SessionSecurityBean — `@Component("sessionSecurity")`; `isOwner(sessionId, auth)` dùng `findTeacherIdById`; `isParticipant(sessionId, auth)` kiểm tra teacher trước (role+findTeacherId) rồi student presence record | `session/SessionSecurityBean.java` |
 | T058 | Session DTOs — `CreateSessionRequest` (scheduleId nullable); `SessionDto` (@JsonInclude NON_NULL, factory `forStart`+`forListItem`); `SessionDetailDto` (nested TeacherInfo, factory `from`); `PresenceDto` (studentId, name, avatarColor, joinedAt, isOnline, factory `from(presence, isOnline)`) | `session/CreateSessionRequest.java`, `session/SessionDto.java`, `session/SessionDetailDto.java`, `session/PresenceDto.java` |
+| T059 | SessionService (start) — validate no active session (ConflictException `SESSION_ALREADY_ACTIVE`), load classroom + optional schedule, build Session (status=active, startedAt=now()), save, generate wsTicket → `SessionDto.forStart`; thêm `existsBySchedule_Id` vào SessionRepository + fix `ScheduleService.delete` M06 TODO | `session/SessionService.java`, `session/SessionRepository.java`, `schedule/ScheduleService.java` |
+| T060 | SessionService (join/leave/presence) — `join`: upsert presence (clear leftAt nếu re-join), generate wsTicket → `JoinSessionResponse` record; `leave`: updateLeftAt; `getPresence`: findBySessionId + findActiveStudentIds → Set để tính isOnline | `session/SessionService.java`, `session/JoinSessionResponse.java`, `session/SessionPresenceRepository.java` |
+| T061 | SessionService (end) — validate not already ended, set status=ended + endedAt=now, compute duration (Duration.between), countById_SessionId → `SessionEndResponse` record; questionCount=0 (wired M10); TODO async summary M14 | `session/SessionService.java`, `session/SessionEndResponse.java` |
+| T062 | SessionController — 7 endpoints: POST /classrooms/{id}/sessions [OWNER], GET /classrooms/{id}/sessions [MEMBER], GET /sessions/{id} [AUTH], POST /sessions/{id}/end [sessionSecurity.isOwner], POST /sessions/{id}/join [STUDENT], POST /sessions/{id}/leave [STUDENT], GET /sessions/{id}/presence [sessionSecurity.isParticipant]; class-level @RequestMapping("/api/v1") | `session/SessionController.java` |
 
 ### In Progress
 
@@ -257,4 +261,4 @@ _(none)_
 
 ### Next
 
-T059 — SessionService (start)
+T063 — Flyway V8: questions + options + answers

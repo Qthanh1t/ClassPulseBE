@@ -22,4 +22,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     Optional<UUID> findTeacherIdById(@Param("sessionId") UUID sessionId);
 
     Optional<Session> findByIdAndClassroom_Id(UUID id, UUID classroomId);
+
+    boolean existsBySchedule_Id(UUID scheduleId);
 }
