@@ -255,10 +255,19 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T061 | SessionService (end) — validate not already ended, set status=ended + endedAt=now, compute duration (Duration.between), countById_SessionId → `SessionEndResponse` record; questionCount=0 (wired M10); TODO async summary M14 | `session/SessionService.java`, `session/SessionEndResponse.java` |
 | T062 | SessionController — 7 endpoints: POST /classrooms/{id}/sessions [OWNER], GET /classrooms/{id}/sessions [MEMBER], GET /sessions/{id} [AUTH], POST /sessions/{id}/end [sessionSecurity.isOwner], POST /sessions/{id}/join [STUDENT], POST /sessions/{id}/leave [STUDENT], GET /sessions/{id}/presence [sessionSecurity.isParticipant]; class-level @RequestMapping("/api/v1") | `session/SessionController.java` |
 
+#### M10 — Question (T063–T064)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T063 | Flyway V8: questions + options + answers — DDL `questions` (status CHECK draft/running/ended, partial index WHERE status='running'), `question_options` (ON DELETE CASCADE), `student_answers` (UNIQUE(question_id, student_id), UUID[] selected_option_ids) | `db/migration/V8__create_questions.sql` |
+| T064 | Question + QuestionOption + StudentAnswer entities — `Question` không extend BaseEntity (@CreatedDate createdAt, OneToMany options cascade+orphanRemoval, @Builder.Default status=draft), `QuestionType`/`QuestionStatus`/`ConfidenceLevel` enums; `QuestionOption` (label, text, isCorrect, optionOrder); `StudentAnswer` (`selected_option_ids UUID[]` via `@Type(UUIDArrayType.class)` từ hypersistence-utils, `ConfidenceLevel` enum nullable, `Boolean correct` nullable) | `question/Question.java`, `question/QuestionType.java`, `question/QuestionStatus.java`, `question/QuestionOption.java`, `question/StudentAnswer.java`, `question/ConfidenceLevel.java` |
+| T065 | Question/Option/Answer repositories — `QuestionRepository`: `findBySessionId` (DISTINCT JOIN FETCH options, ORDER BY questionOrder), `findRunningBySessionId` (status=running dùng partial index), `findByIdAndSession_Id`, `countBySession_Id`; `QuestionOptionRepository`: `findByQuestionId`; `StudentAnswerRepository`: `findByQuestion_Id`, `findByQuestion_IdAndStudent_Id`, `existsByQuestion_IdAndStudent_Id` | `question/QuestionRepository.java`, `question/QuestionOptionRepository.java`, `question/StudentAnswerRepository.java` |
+| T066 | Question DTOs — `CreateQuestionRequest` (@Valid type/content/timerSeconds/@Positive/options); `CreateOptionRequest` (label/text/isCorrect); `OptionDto` record (id, label, text, isCorrect, order); `QuestionDto` (@JsonInclude NON_NULL, @Builder, factory `from(Question)`); `QuestionStartResponse` record (id, status, startedAt, endsAt); `QuestionEndResponse` record (id, status, endedAt); `QuestionStatsDto` record với nested `OptionDistribution`, `ConfidenceBreakdown`, `SilentStudent` | `question/Create{Question,Option}Request.java`, `question/OptionDto.java`, `question/QuestionDto.java`, `question/Question{Start,End}Response.java`, `question/QuestionStatsDto.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T063 — Flyway V8: questions + options + answers
+T067 — QuestionTimerService
