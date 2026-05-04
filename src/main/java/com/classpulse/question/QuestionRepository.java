@@ -19,4 +19,7 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     Optional<Question> findByIdAndSession_Id(UUID id, UUID sessionId);
 
     long countBySession_Id(UUID sessionId);
+
+    @Query("SELECT q FROM Question q JOIN FETCH q.session WHERE q.status = com.classpulse.question.QuestionStatus.running")
+    List<Question> findAllRunning();
 }
