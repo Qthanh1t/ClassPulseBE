@@ -269,10 +269,18 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T070 | SilentStudentDetector — `@Scheduled(fixedDelay=10_000)`: loop `findActiveIds()`, get `active_question` từ Redis, compute `silent = presence − answered`, log.debug + broadcast TODO M13; thêm `findActiveIds()` vào `SessionRepository`; `@EnableScheduling` thêm vào `ClasspulseApplication` | `question/SilentStudentDetector.java`, `session/SessionRepository.java`, `ClasspulseApplication.java` |
 | T071 | QuestionController — 5 endpoints: GET /questions [AUTH], POST /questions [sessionSecurity.isOwner], POST /questions/{qid}/start [OWNER], POST /questions/{qid}/end [OWNER], GET /questions/{qid}/stats [OWNER]; class-level `@RequestMapping("/api/v1/sessions/{sessionId}")` | `question/QuestionController.java` |
 
+#### M11 — Student Answer (T072–T074)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T072 | StudentAnswerService (submit) — validate question.status=running, selectedOptionIds ⊆ question options (BusinessException), 409 nếu đã nộp; compute isCorrect (single/multiple: exact set match; essay: null); save; Redis SADD `session:{id}:question:{qid}:answered` TTL 5min; broadcast TODO M13 | `question/StudentAnswerService.java`, `question/SubmitAnswerRequest.java`, `question/StudentAnswerDto.java` |
+| T073 | StudentAnswerService (view) — teacher: tất cả answers JOIN FETCH student; student: chỉ own answer (wrapped in List); check question exists trước | `question/StudentAnswerService.java` |
+| T074 | StudentAnswerController — 2 endpoints: POST /sessions/{sessionId}/questions/{questionId}/answers [STUDENT] → 201, GET /sessions/{sessionId}/questions/{questionId}/answers [AUTH]; class-level `@RequestMapping("/api/v1/sessions/{sessionId}/questions/{questionId}/answers")` | `question/StudentAnswerController.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T072 — StudentAnswerService (submit)
+T075 — Breakout (M12)
