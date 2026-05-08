@@ -1,10 +1,10 @@
 package com.classpulse.question;
 
 import com.classpulse.user.User;
-import io.hypersistence.utils.hibernate.type.array.UUIDArrayType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -34,7 +34,7 @@ public class StudentAnswer {
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
-    @Type(UUIDArrayType.class)
+    @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "selected_option_ids", columnDefinition = "uuid[]")
     private UUID[] selectedOptionIds;
 
