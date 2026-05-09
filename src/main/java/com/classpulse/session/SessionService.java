@@ -61,7 +61,7 @@ public class SessionService {
 
         log.info("Teacher {} started session {} for classroom {}", teacherId, session.getId(), classroomId);
 
-        String wsTicket = wsTicketService.generateTicket(teacherId);
+        String wsTicket = wsTicketService.generateSessionTicket(teacherId, session.getId());
         return SessionDto.forStart(session, wsTicket);
     }
 
@@ -136,7 +136,7 @@ public class SessionService {
 
         log.info("Student {} joined session {}", studentId, sessionId);
 
-        String wsTicket = wsTicketService.generateTicket(studentId);
+        String wsTicket = wsTicketService.generateSessionTicket(studentId, sessionId);
         return new JoinSessionResponse(
                 sessionId,
                 session.getClassroom().getName(),

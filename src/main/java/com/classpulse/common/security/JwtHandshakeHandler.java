@@ -10,7 +10,6 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -30,21 +29,25 @@ public class JwtHandshakeHandler extends DefaultHandshakeHandler {
             return null;
         }
 
-        UUID userId = wsTicketService.validateAndConsume(ticket).orElse(null);
-        if (userId == null) {
+        WsTicketService.WsTicketData data = wsTicketService.validateAndConsume(ticket).orElse(null);
+        if (data == null) {
             log.warn("WS handshake rejected: invalid or expired ticket");
             return null;
         }
 
-        return userRepository.findById(userId)
+        return userRepository.findById(data.userId())
                 .map(user -> {
                     attributes.put("userId", user.getId().toString());
                     attributes.put("userRole", user.getRole().name());
-                    log.info("WS handshake accepted: user={} role={}", user.getId(), user.getRole());
+                    if (data.sessionId() != null) {
+                        attributes.put("sessionId", data.sessionId().toString());
+                    }
+                    log.info("WS handshake accepted: user={} role={} session={}",
+                            user.getId(), user.getRole(), data.sessionId());
                     return (Principal) new StompPrincipal(user.getId(), user.getRole(), user.getName());
                 })
                 .orElseGet(() -> {
-                    log.warn("WS handshake rejected: user not found for id={}", userId);
+                    log.warn("WS handshake rejected: user not found for id={}", data.userId());
                     return null;
                 });
     }

@@ -295,6 +295,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T081 | JwtHandshakeHandler + StompPrincipal — `DefaultHandshakeHandler` extract ticket từ query param `?ticket=xxx`, `WsTicketService.validateAndConsume()`, load user từ DB, trả `StompPrincipal(userId, role, name)` với `getName()=userId.toString()`; `StompPrincipal` record implements `Principal` | `common/security/JwtHandshakeHandler.java`, `common/security/StompPrincipal.java` |
 | T082 | JwtChannelInterceptor — `ChannelInterceptor` kiểm tra Principal tồn tại tại mỗi STOMP SEND/SUBSCRIBE frame; throw `AccessDeniedException` nếu null; wired vào `configureClientInboundChannel` | `common/security/JwtChannelInterceptor.java`, `config/WebSocketConfig.java` |
 | T083 | SessionBroadcastService — `SimpMessagingTemplate` wrapper: `broadcastToSession` (→ `/topic/session/{id}`), `sendToUser` (→ `/user/queue/private`), `broadcastToRoom` (→ `/topic/session/{id}/room/{roomId}`); wired trong `QuestionController` (question_started, question_ended), `StudentAnswerController` (answer_aggregate → teacher), `BreakoutController` (breakout_started, breakout_ended, broadcast_message, teacher_joined_room, teacher_left_room), `QuestionTimerService` (question_ended sau auto-end); `QuestionRepository.findByIdWithOptions`, `StudentAnswerService.broadcastAnswerAggregate` | `session/SessionBroadcastService.java`, `question/QuestionController.java`, `question/StudentAnswerController.java`, `question/StudentAnswerService.java`, `breakout/BreakoutController.java`, `question/QuestionTimerService.java` |
+| T084 | Presence tracking — `WsTicketService.generateSessionTicket(userId, sessionId)` nhúng sessionId vào ticket (format `userId:sessionId`); `JwtHandshakeHandler` store `sessionId` vào session attributes; `PresenceEventListener`: `@EventListener(SessionConnectEvent)` add userId vào Redis SET `session:{id}:presence` + broadcast `student_presence` joined; `@EventListener(SessionDisconnectEvent)` remove + `updateLeftAt` DB + broadcast left; chỉ xử lý STUDENT role | `session/PresenceEventListener.java`, `common/security/WsTicketService.java`, `common/security/JwtHandshakeHandler.java`, `session/SessionService.java` |
 
 ### In Progress
 
@@ -302,4 +303,4 @@ _(none)_
 
 ### Next
 
-T084 — Presence tracking (M13)
+T085 — Flyway V10: chat_messages + raised_hands (M13)
