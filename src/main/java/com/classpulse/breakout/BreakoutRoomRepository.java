@@ -14,4 +14,6 @@ public interface BreakoutRoomRepository extends JpaRepository<BreakoutRoom, UUID
     List<BreakoutRoom> findByBreakoutSession_IdWithStudents(@Param("breakoutSessionId") UUID breakoutSessionId);
 
     Optional<BreakoutRoom> findByIdAndBreakoutSession_Id(UUID id, UUID breakoutSessionId);
+
+    boolean existsByIdAndBreakoutSession_Session_Id(UUID id, UUID sessionId);
 }

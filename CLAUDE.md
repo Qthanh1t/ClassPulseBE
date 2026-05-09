@@ -298,6 +298,9 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T084 | Presence tracking — `WsTicketService.generateSessionTicket(userId, sessionId)` nhúng sessionId vào ticket (format `userId:sessionId`); `JwtHandshakeHandler` store `sessionId` vào session attributes; `PresenceEventListener`: `@EventListener(SessionConnectEvent)` add userId vào Redis SET `session:{id}:presence` + broadcast `student_presence` joined; `@EventListener(SessionDisconnectEvent)` remove + `updateLeftAt` DB + broadcast left; chỉ xử lý STUDENT role | `session/PresenceEventListener.java`, `common/security/WsTicketService.java`, `common/security/JwtHandshakeHandler.java`, `session/SessionService.java` |
 | T085 | Flyway V10: chat_messages + raised_hands — DDL `chat_messages` (session_id, sender_id, content, breakout_room_id nullable, sent_at) + `raised_hands` (session_id, student_id, raised boolean, event_at); indexes: `idx_chat_session_time`, `idx_chat_breakout` partial, `idx_raised_hands_session` | `db/migration/V10__create_chat_raised.sql` |
 | T086 | Chat entity + repo — `ChatMessage` entity (ManyToOne Session/User/BreakoutRoom lazy, @CreatedDate sentAt); `ChatRepository`: `findRecentBySessionId` (JPQL LIMIT, no cursor), `findBeforeBySessionId` (subquery cursor: sentAt < cursor.sentAt, JPQL LIMIT) | `chat/ChatMessage.java`, `chat/ChatRepository.java` |
+| T087 | Chat WS + REST — `ChatSendRequest` (content @NotBlank @Size(2000), breakoutRoomId nullable); `ChatMessageDto` (nested SenderInfo: id/name/role/avatarColor); `ChatCursorMeta` (hasMore, oldestId); `ChatService.send()` (validate session active + participant + breakout room ownership, save, return dto); `ChatService.getHistory()` (cursor pagination, reverse DESC→chronological); `ChatWsController` @MessageMapping `/session/{id}/chat` → broadcast to room or session; `ChatController` GET `/sessions/{id}/chat` [PARTICIPANT]; `BreakoutRoomRepository.existsByIdAndBreakoutSession_Session_Id` added | `chat/ChatSendRequest.java`, `chat/ChatMessageDto.java`, `chat/ChatCursorMeta.java`, `chat/ChatService.java`, `chat/ChatWsController.java`, `chat/ChatController.java`, `breakout/BreakoutRoomRepository.java` |
+| T088 | Raise hand WS — `RaisedHand` entity (@CreatedDate eventAt, ManyToOne Session/User lazy); `RaisedHandRepository`; `RaiseHandRequest` (raised boolean); `RaiseHandWsController` @MessageMapping `/session/{id}/raise-hand`: STUDENT only, Redis SADD/SREM `session:{id}:raised_hands`, save to DB, broadcast `raise_hand_changed {studentId, raised}` | `session/RaisedHand.java`, `session/RaisedHandRepository.java`, `session/RaiseHandRequest.java`, `session/RaiseHandWsController.java` |
+| T089 | Focus student WS — `FocusStudentRequest` (studentId UUID nullable); `FocusWsController` @MessageMapping `/session/{id}/focus`: TEACHER only, broadcast `focus_changed {focusedStudentId}` (null = unfocus) | `session/FocusStudentRequest.java`, `session/FocusWsController.java` |
 
 ### In Progress
 
@@ -305,4 +308,4 @@ _(none)_
 
 ### Next
 
-T087 — Chat WS controller + REST history (M13)
+T090 — WebRTC Signaling controller (M13)
