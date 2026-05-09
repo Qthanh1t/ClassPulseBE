@@ -32,7 +32,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setHandshakeHandler(jwtHandshakeHandler)
-                .setAllowedOriginPatterns("http://localhost:5173", "https://classpulse.app")
+                .setAllowedOriginPatterns(
+                        "http://localhost:5173",
+                        "http://localhost:*",   // allow all localhost ports (dev + integration tests)
+                        "https://classpulse.app")
                 .withSockJS();
     }
 
