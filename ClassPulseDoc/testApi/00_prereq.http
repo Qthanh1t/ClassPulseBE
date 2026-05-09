@@ -1,0 +1,103 @@
+### ============================================================
+### PREREQUISITES — Auth + Classroom
+### Chạy file này trước, theo đúng thứ tự từ trên xuống.
+### Copy token/ID từ response vào http-client.env.json
+### ============================================================
+
+@baseUrl = http://localhost:8080
+
+### [1] Đăng ký tài khoản TEACHER
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Giáo viên Test",
+  "email": "teacher@test.com",
+  "password": "Password123!",
+  "role": "TEACHER"
+}
+
+### [2] Đăng nhập TEACHER — copy data.accessToken → teacherToken
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@test.com",
+  "password": "Password123!"
+}
+
+### [3] Đăng ký STUDENT 1
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Học sinh 1",
+  "email": "student1@test.com",
+  "password": "Password123!",
+  "role": "STUDENT"
+}
+
+### [4] Đăng nhập STUDENT 1 — copy data.accessToken → student1Token
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "student1@test.com",
+  "password": "Password123!"
+}
+
+### [5] Đăng ký STUDENT 2
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Học sinh 2",
+  "email": "student2@test.com",
+  "password": "Password123!",
+  "role": "STUDENT"
+}
+
+### [6] Đăng nhập STUDENT 2 — copy data.accessToken → student2Token
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "student2@test.com",
+  "password": "Password123!"
+}
+
+### [7] Teacher tạo lớp học — copy data.id → classroomId
+# Thay <TEACHER_TOKEN> bằng token thực
+POST {{baseUrl}}/api/v1/classrooms
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTc0Zi1jN2ViLTQwMDctYjRjMC1kZDRkNTkxOTU3YTMiLCJyb2xlIjoidGVhY2hlciIsIm5hbWUiOiJHacOhbyB2acOqbiBUZXN0IiwianRpIjoiZDViOTA0MmQtN2U0Ni00YjAxLWI3NTItOWFlNDg2M2IwODk0IiwiaWF0IjoxNzc4MzA4NDI1LCJleHAiOjE3NzgzMDkzMjV9.kaqd7NfdZy7taXuko_lAaXvpbbyNt789gEaOId8DBV2kY-ENk0YdofM4HZD2QTnQBxfBUGZ7YLhBv3iuff3_4w
+
+{
+  "name": "Lớp Test M09-M11",
+  "description": "Lớp để test Session, Question, Answer"
+}
+
+### [8] Student 1 join lớp bằng joinCode từ response bước [7]
+# Thay <STUDENT1_TOKEN> và <JOIN_CODE> bằng giá trị thực
+POST {{baseUrl}}/api/v1/classrooms/join
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI5MWRlMTMxZS02ZGY3LTQwNGItYTY1Mi1iMjc5Y2MxYmRiNWUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDEiLCJqdGkiOiJjMGI4YTk2OC1jYzliLTQ3MGYtYWQ1ZC04NzQ4ZDBhMGQ1NzMiLCJpYXQiOjE3NzgzMDgzNjUsImV4cCI6MTc3ODMwOTI2NX0.iQuqfSlxksUyXRd8zucI9tM1fWcYGfywyZT_1E-RdHmz0yRsnCpLemTxEZwvkBofE1VtBzxEz5vgHGJltcWTaQ
+
+{
+  "joinCode": "JAUYAD"
+}
+
+### [9] Student 2 join lớp
+# Thay <STUDENT2_TOKEN> và <JOIN_CODE> bằng giá trị thực
+POST {{baseUrl}}/api/v1/classrooms/join
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzODk1M2U4NC00YTU4LTQ5NmItYjAxMS0wZGUwNDFhMDc5NDUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDIiLCJqdGkiOiJiNGNkYzNhOC1hNmUwLTQzNjUtOTliZS0yYzE2MGI1NmRmMTciLCJpYXQiOjE3NzgzMDgzOTUsImV4cCI6MTc3ODMwOTI5NX0.tjt7eIJ75qN5RtggCL-lfjC8ypMSR12ydPfIEolMZ2xQzsPe9EkkeOFboKmZ6T4svb4a7YPpl6UTHxIYWlVmRw
+
+{
+  "joinCode": "JAUYAD"
+}
+
+### [10] Verify — xem danh sách thành viên lớp (phải thấy 2 student)
+# Thay <TEACHER_TOKEN> và <CLASSROOM_ID>
+GET {{baseUrl}}/api/v1/classrooms/b189d174-c2aa-4791-b903-627ed66c50ca/members
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTc0Zi1jN2ViLTQwMDctYjRjMC1kZDRkNTkxOTU3YTMiLCJyb2xlIjoidGVhY2hlciIsIm5hbWUiOiJHacOhbyB2acOqbiBUZXN0IiwianRpIjoiZDViOTA0MmQtN2U0Ni00YjAxLWI3NTItOWFlNDg2M2IwODk0IiwiaWF0IjoxNzc4MzA4NDI1LCJleHAiOjE3NzgzMDkzMjV9.kaqd7NfdZy7taXuko_lAaXvpbbyNt789gEaOId8DBV2kY-ENk0YdofM4HZD2QTnQBxfBUGZ7YLhBv3iuff3_4w

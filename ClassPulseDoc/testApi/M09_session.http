@@ -1,0 +1,113 @@
+### ============================================================
+### M09 — Session
+### Yêu cầu: đã chạy 00_prereq.http, có classroomId + tokens
+### ============================================================
+
+@baseUrl = http://localhost:8080
+
+# --- Thay các giá trị này trước khi chạy ---
+@teacherToken = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTc0Zi1jN2ViLTQwMDctYjRjMC1kZDRkNTkxOTU3YTMiLCJyb2xlIjoidGVhY2hlciIsIm5hbWUiOiJHacOhbyB2acOqbiBUZXN0IiwianRpIjoiOWNlYjkzYmItZjY0MC00OWI5LTg3ZTctOWJkM2E5OGEwMzdmIiwiaWF0IjoxNzc4MzA5NzczLCJleHAiOjE3NzgzMTA2NzN9.XUTGGm5V8-Jz7ypwjSKc-IC6L9JZgRkju29UnXE246Jo1BLyFjZhw-GNssGvZJk9pMlylQXLdOqHhDEwdreBxQ
+@student1Token = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI5MWRlMTMxZS02ZGY3LTQwNGItYTY1Mi1iMjc5Y2MxYmRiNWUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDEiLCJqdGkiOiJjMGI4YTk2OC1jYzliLTQ3MGYtYWQ1ZC04NzQ4ZDBhMGQ1NzMiLCJpYXQiOjE3NzgzMDgzNjUsImV4cCI6MTc3ODMwOTI2NX0.iQuqfSlxksUyXRd8zucI9tM1fWcYGfywyZT_1E-RdHmz0yRsnCpLemTxEZwvkBofE1VtBzxEz5vgHGJltcWTaQ
+@student2Token = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzODk1M2U4NC00YTU4LTQ5NmItYjAxMS0wZGUwNDFhMDc5NDUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDIiLCJqdGkiOiJiNGNkYzNhOC1hNmUwLTQzNjUtOTliZS0yYzE2MGI1NmRmMTciLCJpYXQiOjE3NzgzMDgzOTUsImV4cCI6MTc3ODMwOTI5NX0.tjt7eIJ75qN5RtggCL-lfjC8ypMSR12ydPfIEolMZ2xQzsPe9EkkeOFboKmZ6T4svb4a7YPpl6UTHxIYWlVmRw
+@classroomId   = b189d174-c2aa-4791-b903-627ed66c50ca
+
+# sessionId sẽ được điền sau khi chạy bước [1]
+@sessionId = ca58370c-3f9e-4730-97f5-3ea05ff8ed94
+
+
+### ── HAPPY PATH ────────────────────────────────────────────
+
+### [1] Teacher bắt đầu session
+# → Expect 201, data.status = "active"
+# → Copy data.id → sessionId (dùng cho tất cả bước tiếp)
+POST {{baseUrl}}/api/v1/classrooms/{{classroomId}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{}
+
+### [2] Teacher bắt đầu session (kèm scheduleId nếu có)
+# Bỏ qua nếu không có schedule
+POST {{baseUrl}}/api/v1/classrooms/{{classroomId}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "scheduleId": "00000000-0000-0000-0000-000000000000"
+}
+
+### [3] Xem danh sách session của lớp (teacher)
+# → Expect 200, data là mảng, meta có totalCount
+GET {{baseUrl}}/api/v1/classrooms/{{classroomId}}/sessions?page=1&limit=20
+Authorization: Bearer {{teacherToken}}
+
+### [4] Xem chi tiết session
+# → Expect 200, data.status = "active"
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}
+Authorization: Bearer {{teacherToken}}
+
+### [5] Student 1 join session
+# → Expect 200, data.wsTicket (dùng cho WebSocket M13)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/join
+Authorization: Bearer {{student1Token}}
+
+### [6] Student 2 join session
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/join
+Authorization: Bearer {{student2Token}}
+
+### [7] Xem danh sách presence (teacher hoặc student đã join)
+# → Expect 200, data là mảng 2 student, isOnline = true
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/presence
+Authorization: Bearer {{teacherToken}}
+
+### [8] Student 1 leave session
+# → Expect 204 No Content
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/leave
+Authorization: Bearer {{student1Token}}
+
+### [9] Xem presence sau khi student 1 leave
+# → data[0].isOnline = false (có leftAt, không còn trong Redis set)
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/presence
+Authorization: Bearer {{teacherToken}}
+
+### [10] Student 1 rejoin session (presence được re-activate)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/join
+Authorization: Bearer {{student1Token}}
+
+### [11] Teacher kết thúc session
+# → Expect 200, data.status = "ended", data.durationMinutes > 0
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/end
+Authorization: Bearer {{teacherToken}}
+
+
+### ── ERROR CASES ────────────────────────────────────────────
+
+### [E1] Teacher bắt đầu session thứ 2 khi đã có session active
+# → Expect 409, error.code = "SESSION_ALREADY_ACTIVE"
+# (Chỉ test được trước khi end session ở bước [11])
+POST {{baseUrl}}/api/v1/classrooms/{{classroomId}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{}
+
+### [E2] Student cố join session đã kết thúc
+# → Expect 404 hoặc 400 (session không còn active)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/join
+Authorization: Bearer {{student1Token}}
+
+### [E3] Teacher (không phải owner) cố end session của người khác
+# → Expect 403
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/end
+Authorization: Bearer {{student1Token}}
+
+### [E4] Truy cập presence khi chưa join (student chưa tham gia)
+# Đăng ký 1 student mới chưa join lớp, dùng token đó
+# → Expect 403
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/presence
+Authorization: Bearer <UNKNOWN_STUDENT_TOKEN>
+
+### [E5] Get session không tồn tại
+# → Expect 404
+GET {{baseUrl}}/api/v1/sessions/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{teacherToken}}

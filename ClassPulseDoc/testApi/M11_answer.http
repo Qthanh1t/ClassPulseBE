@@ -1,0 +1,161 @@
+### ============================================================
+### M11 — Student Answer
+### Yêu cầu:
+###   - Session đang ACTIVE
+###   - Student đã join session (M09 bước [5][6])
+###   - Câu hỏi đang RUNNING (M10 bước [6])
+### ============================================================
+
+@baseUrl = http://localhost:8080
+
+# --- Thay các giá trị này trước khi chạy ---
+@teacherToken  = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTc0Zi1jN2ViLTQwMDctYjRjMC1kZDRkNTkxOTU3YTMiLCJyb2xlIjoidGVhY2hlciIsIm5hbWUiOiJHacOhbyB2acOqbiBUZXN0IiwianRpIjoiOWNlYjkzYmItZjY0MC00OWI5LTg3ZTctOWJkM2E5OGEwMzdmIiwiaWF0IjoxNzc4MzA5NzczLCJleHAiOjE3NzgzMTA2NzN9.XUTGGm5V8-Jz7ypwjSKc-IC6L9JZgRkju29UnXE246Jo1BLyFjZhw-GNssGvZJk9pMlylQXLdOqHhDEwdreBxQ
+@student1Token = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI5MWRlMTMxZS02ZGY3LTQwNGItYTY1Mi1iMjc5Y2MxYmRiNWUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDEiLCJqdGkiOiI1MWI0M2QxNS0wZDcyLTQ3N2ItYjZkNi1lNDFlNmI2ODQzZGYiLCJpYXQiOjE3NzgzMDk4MDMsImV4cCI6MTc3ODMxMDcwM30.9JuX1D0lZmJw_CXGlmv0DnXLMQkgEWyuRcC_WeBv5b6pm3ThRkc_yNnItNxgKl9mVb2M1jTlNXO0oZVagNSp4g
+@student2Token = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzODk1M2U4NC00YTU4LTQ5NmItYjAxMS0wZGUwNDFhMDc5NDUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDIiLCJqdGkiOiJjNGFhNmFiYy0xOTE0LTQxNTUtODk2ZC03NjJkMTdmMzY2ZDEiLCJpYXQiOjE3NzgzMDk4MTksImV4cCI6MTc3ODMxMDcxOX0.J3bNVEdc5a8bocnfyRwV2sALMV3SmSczbaIU_Wpm0F10Gu-iX_ktA0EmbQiOMJHrZ3Da6yx5L_mpBwyH4EiY1Q
+@sessionId     = eb5a2ae0-ec75-45aa-819d-0e525d2ce1e4
+@questionId    = db243df4-1a39-4f8f-a33c-e2f40a7db03e
+
+# optionId lấy từ response GET /questions hoặc POST /questions
+@optionAId = a1e2e10c-3846-4354-8dbd-3fbbf584f8fd
+@optionBId = a13d3a91-1eff-4c69-8420-af08f2ac6dec
+
+### ── SINGLE CHOICE ANSWER ────────────────────────────────────
+
+### [1] Student 1 nộp bài trắc nghiệm 1 đáp án (kèm confidence)
+# → Expect 201, data.correct = true/false, data.confidence = "high"
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student1Token}}
+
+{
+  "selectedOptionIds": ["{{optionAId}}"],
+  "confidence": "high"
+}
+
+### [2] Student 2 nộp bài (chọn sai + confidence thấp)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student2Token}}
+
+{
+  "selectedOptionIds": ["{{optionBId}}"],
+  "confidence": "low"
+}
+
+
+### ── MULTIPLE CHOICE ANSWER ───────────────────────────────────
+### (Dùng khi câu hỏi type = "multiple")
+### Bước: tạo + start câu hỏi multiple, lấy option IDs mới
+
+### [3] Student nộp nhiều lựa chọn
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student1Token}}
+
+{
+  "selectedOptionIds": ["{{optionAId}}", "{{optionBId}}"],
+  "confidence": "medium"
+}
+
+
+### ── ESSAY ANSWER ────────────────────────────────────────────
+### (Dùng khi câu hỏi type = "essay" — không có selectedOptionIds)
+
+### [4] Student nộp câu trả lời tự luận
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student1Token}}
+
+{
+  "essayText": "Virtual Threads trong Java 21 là luồng nhẹ được quản lý bởi JVM thay vì OS, giúp tăng khả năng xử lý concurrent mà không cần nhiều OS thread.",
+  "confidence": "medium"
+}
+
+
+### ── XEM ĐÁP ÁN ──────────────────────────────────────────────
+
+### [5] Teacher xem TẤT CẢ đáp án của câu hỏi
+# → Expect 200, mảng chứa đáp án của cả student 1 và 2
+# → Mỗi item: {id, student: {id, name}, selectedOptionIds, correct, confidence, answeredAt}
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Authorization: Bearer {{teacherToken}}
+
+### [6] Student 1 xem ĐÁP ÁN CỦA MÌNH (không thấy của người khác)
+# → Expect 200, mảng chỉ có 1 phần tử (đáp án của student 1)
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Authorization: Bearer {{student1Token}}
+
+### [7] Student 2 xem đáp án của mình
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Authorization: Bearer {{student2Token}}
+
+### [8] Teacher xem stats sau khi có đáp án
+# → optionDistribution phải phản ánh câu trả lời vừa nộp
+# → silentStudents: rỗng nếu tất cả đã trả lời
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/stats
+Authorization: Bearer {{teacherToken}}
+
+
+### ── ERROR CASES ────────────────────────────────────────────
+
+### [E1] Student nộp bài lần 2 (đã nộp rồi)
+# → Expect 409, error.code = "ALREADY_ANSWERED"
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student1Token}}
+
+{
+  "selectedOptionIds": ["{{optionAId}}"],
+  "confidence": "high"
+}
+
+### [E2] Student nộp optionId không thuộc câu hỏi này
+# → Expect 400 (validation: selectedOptionIds ⊄ question options)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student2Token}}
+
+{
+  "selectedOptionIds": ["00000000-0000-0000-0000-000000000000"],
+  "confidence": "medium"
+}
+
+### [E3] Student nộp bài khi câu hỏi chưa running (status = draft/ended)
+# → Expect 400, error.code liên quan đến question status
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student1Token}}
+
+{
+  "selectedOptionIds": ["{{optionAId}}"]
+}
+
+### [E4] Teacher cố nộp bài (role không phải STUDENT)
+# → Expect 403
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "selectedOptionIds": ["{{optionAId}}"]
+}
+
+### [E5] essayText vượt 5000 ký tự
+# → Expect 400 (@Size(max=5000))
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/answers
+Content-Type: application/json
+Authorization: Bearer {{student1Token}}
+
+{
+  "essayText": "A"
+}
+# Thay "A" bằng chuỗi > 5000 ký tự để test
+
+
+### ── FULL FLOW CHECKLIST ─────────────────────────────────────
+# Sau khi test xong M09–M11, chạy lại M10 bước [8] GET /stats
+# và kiểm tra:
+# ✓ optionDistribution[*].count tổng = số student đã trả lời
+# ✓ confidenceBreakdown tổng = số câu trả lời có confidence
+# ✓ silentStudents = (active presence) - (đã trả lời)
+# ✓ Kết thúc session (M09 bước [11]) → session_student_summaries được tính async

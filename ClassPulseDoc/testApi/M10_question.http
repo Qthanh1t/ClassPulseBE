@@ -1,0 +1,150 @@
+### ============================================================
+### M10 — Question
+### Yêu cầu: session đang ACTIVE (chạy M09 bước [1]–[6] trước)
+### ============================================================
+
+@baseUrl = http://localhost:8080
+
+# --- Thay các giá trị này trước khi chạy ---
+@teacherToken = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMTExMTc0Zi1jN2ViLTQwMDctYjRjMC1kZDRkNTkxOTU3YTMiLCJyb2xlIjoidGVhY2hlciIsIm5hbWUiOiJHacOhbyB2acOqbiBUZXN0IiwianRpIjoiOWNlYjkzYmItZjY0MC00OWI5LTg3ZTctOWJkM2E5OGEwMzdmIiwiaWF0IjoxNzc4MzA5NzczLCJleHAiOjE3NzgzMTA2NzN9.XUTGGm5V8-Jz7ypwjSKc-IC6L9JZgRkju29UnXE246Jo1BLyFjZhw-GNssGvZJk9pMlylQXLdOqHhDEwdreBxQ
+@student1Token = eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI5MWRlMTMxZS02ZGY3LTQwNGItYTY1Mi1iMjc5Y2MxYmRiNWUiLCJyb2xlIjoic3R1ZGVudCIsIm5hbWUiOiJI4buNYyBzaW5oIDEiLCJqdGkiOiI0ZTVlZDNjOC0wNzkzLTQ2OWUtODViZi0xNzZhYzQ5MzRlMzkiLCJpYXQiOjE3NzgzMDkwNzgsImV4cCI6MTc3ODMwOTk3OH0.A6wXdtWXOyl9Qkcl5sZ1Pw9XMfeg6YvUqGpdpNQ35EuNF2WzBm0y712ov-t-O0Lqiyva4JFupl7HNkvEXsF1Yg
+@sessionId     = eb5a2ae0-ec75-45aa-819d-0e525d2ce1e4
+
+# questionId sẽ được điền sau bước [1] hoặc [2]
+@questionId = db243df4-1a39-4f8f-a33c-e2f40a7db03e
+//b94325e8-3823-4003-8b7c-3dca89a1a28f
+//55c46c55-7078-4b06-8aff-34c8ecb225d0
+### ── SINGLE CHOICE QUESTION ─────────────────────────────────
+
+### [1] Tạo câu hỏi trắc nghiệm 1 đáp án (có đếm giờ 30s)
+# → Expect 201, data.status = "draft"
+# → Copy data.id → questionId
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "type": "single",
+  "content": "Thủ đô của Việt Nam là thành phố nào?",
+  "timerSeconds": 30,
+  "options": [
+    { "label": "A", "text": "Hà Nội",    "isCorrect": true  },
+    { "label": "B", "text": "TP.HCM",    "isCorrect": false },
+    { "label": "C", "text": "Đà Nẵng",   "isCorrect": false },
+    { "label": "D", "text": "Huế",       "isCorrect": false }
+  ]
+}
+
+### [2] Tạo câu hỏi trắc nghiệm NHIỀU đáp án (không có timer)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "type": "multiple",
+  "content": "Những ngôn ngữ nào thuộc JVM?",
+  "options": [
+    { "label": "A", "text": "Java",   "isCorrect": true  },
+    { "label": "B", "text": "Kotlin", "isCorrect": true  },
+    { "label": "C", "text": "Python", "isCorrect": false },
+    { "label": "D", "text": "Scala",  "isCorrect": true  }
+  ]
+}
+
+### [3] Tạo câu hỏi TỰ LUẬN (essay — không cần options)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "type": "essay",
+  "content": "Trình bày ngắn gọn về Virtual Threads trong Java 21.",
+  "timerSeconds": 120
+}
+
+### [4] Xem tất cả câu hỏi trong session
+# → Expect 200, mảng 3 câu hỏi, status đều là "draft"
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Authorization: Bearer {{teacherToken}}
+
+### [5] Student cũng xem được danh sách câu hỏi
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Authorization: Bearer {{student1Token}}
+
+
+### ── START / END QUESTION ────────────────────────────────────
+
+### [6] Teacher bắt đầu câu hỏi [1] (questionId từ bước [1])
+# → Expect 200, data.status = "running", data.endsAt có giá trị (timer 30s)
+# → Client countdown từ data.endsAt
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/start
+Authorization: Bearer {{teacherToken}}
+
+### [7] Teacher kết thúc câu hỏi thủ công (trước khi hết giờ)
+# → Expect 200, data.status = "ended"
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/end
+Authorization: Bearer {{teacherToken}}
+
+### [8] Xem thống kê câu hỏi vừa kết thúc
+# → Expect 200, data gồm:
+#   optionDistribution: [{optionId, label, text, count, percent}]
+#   confidenceBreakdown: {low, medium, high}
+#   silentStudents: [{studentId, name}] — student chưa trả lời
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/stats
+Authorization: Bearer {{teacherToken}}
+
+
+### ── AUTO-END BY TIMER (test riêng) ─────────────────────────
+### Để test auto-end:
+### 1. Tạo câu hỏi mới với timerSeconds = 10
+### 2. Start câu hỏi
+### 3. Đợi ~12 giây
+### 4. GET /questions — status phải là "ended" tự động
+### 5. GET /stats — phải có dữ liệu
+
+
+### ── ERROR CASES ────────────────────────────────────────────
+
+### [E1] Tạo câu hỏi single/multiple không có options
+# → Expect 400, validation error
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "type": "single",
+  "content": "Câu hỏi thiếu options"
+}
+
+### [E2] Tạo câu hỏi với timerSeconds âm
+# → Expect 400 (@Positive constraint)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "type": "essay",
+  "content": "Câu hỏi timer âm",
+  "timerSeconds": -5
+}
+
+### [E3] Start câu hỏi thứ 2 khi đang có câu chạy
+# Trước: start câu [1], chưa end
+# → Expect 409 (đang có question running)
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/start
+Authorization: Bearer {{teacherToken}}
+
+### [E4] Student cố start câu hỏi
+# → Expect 403
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/start
+Authorization: Bearer {{student1Token}}
+
+### [E5] Teacher xem stats câu hỏi đang chạy (chưa ended)
+# → Expect 400 hoặc empty stats (tuỳ impl)
+GET {{baseUrl}}/api/v1/sessions/{{sessionId}}/questions/{{questionId}}/stats
+Authorization: Bearer {{teacherToken}}
+
+### [E6] Session không tồn tại
+# → Expect 404
+GET {{baseUrl}}/api/v1/sessions/00000000-0000-0000-0000-000000000000/questions
+Authorization: Bearer {{teacherToken}}
