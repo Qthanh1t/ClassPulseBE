@@ -4,6 +4,8 @@ import com.classpulse.common.exception.BusinessException;
 import com.classpulse.common.exception.ConflictException;
 import com.classpulse.common.exception.NotFoundException;
 import com.classpulse.common.security.UserPrincipal;
+import com.classpulse.session.SessionBroadcastService;
+import com.classpulse.session.SessionPresenceRepository;
 import com.classpulse.session.SessionRepository;
 import com.classpulse.user.Role;
 import com.classpulse.user.User;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,6 +33,8 @@ public class StudentAnswerService {
     private final StudentAnswerRepository studentAnswerRepository;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final SessionPresenceRepository sessionPresenceRepository;
+    private final SessionBroadcastService broadcastService;
     private final StringRedisTemplate redisTemplate;
 
     // T072 — submit
@@ -81,7 +86,6 @@ public class StudentAnswerService {
         redisTemplate.expire(redisKey, Duration.ofMinutes(5));
 
         log.info("Student {} answered question {} in session {}", studentId, questionId, sessionId);
-        // Broadcast answer_aggregate to teacher — wire SessionBroadcastService in M13 (T083)
 
         // Reload to get answeredAt from DB auditing
         studentAnswerRepository.flush();
@@ -109,6 +113,19 @@ public class StudentAnswerService {
                 .map(StudentAnswerDto::from)
                 .map(List::of)
                 .orElse(List.of());
+    }
+
+    // T083 — called from controller AFTER submit() transaction commits
+    public void broadcastAnswerAggregate(UUID sessionId, UUID questionId) {
+        String redisKey = "session:" + sessionId + ":question:" + questionId + ":answered";
+        Long answeredCount = redisTemplate.opsForSet().size(redisKey);
+        int totalCount = sessionPresenceRepository.findActiveStudentIds(sessionId).size();
+        sessionRepository.findTeacherIdById(sessionId).ifPresent(teacherId ->
+                broadcastService.sendToUser(teacherId, "answer_aggregate",
+                        Map.of("questionId", questionId,
+                               "answeredCount", answeredCount != null ? answeredCount : 0L,
+                               "totalCount", totalCount))
+        );
     }
 
     private Boolean computeIsCorrect(Question question, List<UUID> selectedIds) {

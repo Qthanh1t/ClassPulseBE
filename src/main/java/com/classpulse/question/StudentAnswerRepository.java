@@ -16,4 +16,6 @@ public interface StudentAnswerRepository extends JpaRepository<StudentAnswer, UU
     Optional<StudentAnswer> findByQuestion_IdAndStudent_Id(UUID questionId, UUID studentId);
 
     boolean existsByQuestion_IdAndStudent_Id(UUID questionId, UUID studentId);
+
+    long countByQuestion_Id(UUID questionId);
 }

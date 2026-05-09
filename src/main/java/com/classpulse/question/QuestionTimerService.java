@@ -1,5 +1,6 @@
 package com.classpulse.question;
 
+import com.classpulse.session.SessionBroadcastService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -11,6 +12,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -26,6 +28,7 @@ public class QuestionTimerService {
     private final QuestionRepository questionRepository;
     private final TransactionTemplate transactionTemplate;
     private final StringRedisTemplate redisTemplate;
+    private final SessionBroadcastService broadcastService;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     private final ConcurrentHashMap<UUID, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
@@ -35,7 +38,8 @@ public class QuestionTimerService {
                 () -> {
                     autoEndQuestion(questionId, sessionId);
                     activeTimers.remove(questionId);
-                    // Broadcast question_ended — wire SessionBroadcastService in M13 (T083)
+                    broadcastService.broadcastToSession(sessionId, "question_ended",
+                            Map.of("questionId", questionId));
                 },
                 timerSeconds, TimeUnit.SECONDS);
         activeTimers.put(questionId, future);
@@ -91,6 +95,8 @@ public class QuestionTimerService {
                         () -> {
                             autoEndQuestion(q.getId(), sessionId);
                             activeTimers.remove(q.getId());
+                            broadcastService.broadcastToSession(sessionId, "question_ended",
+                                    Map.of("questionId", q.getId()));
                         },
                         remainingMs, TimeUnit.MILLISECONDS);
                 activeTimers.put(q.getId(), future);

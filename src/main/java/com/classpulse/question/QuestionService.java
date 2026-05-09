@@ -39,6 +39,14 @@ public class QuestionService {
     private final QuestionTimerService questionTimerService;
     private final StringRedisTemplate redisTemplate;
 
+    // T083 — get single question with options for broadcast payload
+    @Transactional(readOnly = true)
+    public QuestionDto get(UUID sessionId, UUID questionId) {
+        return questionRepository.findByIdWithOptions(questionId, sessionId)
+                .map(QuestionDto::from)
+                .orElseThrow(() -> new NotFoundException("Question not found"));
+    }
+
     // T068 — list
     @Transactional(readOnly = true)
     public List<QuestionDto> list(UUID sessionId) {
@@ -139,8 +147,6 @@ public class QuestionService {
         }
 
         log.info("Started question {} in session {}", questionId, sessionId);
-        // Broadcast question_started — wire SessionBroadcastService in M13 (T083)
-
         return new QuestionStartResponse(question.getId(), question.getStatus(), now, endsAt);
     }
 
@@ -163,8 +169,6 @@ public class QuestionService {
         redisTemplate.delete("session:" + sessionId + ":active_question");
 
         log.info("Ended question {} in session {}", questionId, sessionId);
-        // Broadcast question_ended — wire SessionBroadcastService in M13 (T083)
-
         return new QuestionEndResponse(question.getId(), question.getStatus(), now);
     }
 

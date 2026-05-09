@@ -89,7 +89,6 @@ public class BreakoutService {
 
         log.info("Created breakout session {} with {} rooms in session {}",
                 breakoutSession.getId(), roomRequests.size(), sessionId);
-        // Broadcast breakout_started — wire SessionBroadcastService in M13
 
         return BreakoutSessionDto.builder()
                 .breakoutSessionId(breakoutSession.getId())
@@ -128,7 +127,6 @@ public class BreakoutService {
         breakoutSessionRepository.save(breakoutSession);
 
         log.info("Ended breakout session {} in session {}", breakoutId, sessionId);
-        // Broadcast breakout_ended — wire SessionBroadcastService in M13
 
         return new BreakoutEndResponse(breakoutId, now);
     }
@@ -148,7 +146,6 @@ public class BreakoutService {
 
         log.info("Broadcast message to {} students in breakout {} of session {}",
                 recipientCount, breakoutId, sessionId);
-        // Broadcast broadcast_message — wire SessionBroadcastService in M13
 
         return new BroadcastResponse(sentAt, recipientCount);
     }
@@ -163,14 +160,12 @@ public class BreakoutService {
             throw new BusinessException("BREAKOUT_ENDED", "Breakout session is already ended");
         }
 
-        breakoutRoomRepository.findByIdAndBreakoutSession_Id(roomId, breakoutId)
+        BreakoutRoom room = breakoutRoomRepository.findByIdAndBreakoutSession_Id(roomId, breakoutId)
                 .orElseThrow(() -> new NotFoundException("Breakout room not found"));
 
         Instant joinedAt = Instant.now();
         log.info("Teacher joined breakout room {} in breakout {} of session {}", roomId, breakoutId, sessionId);
-        // Broadcast teacher_joined_room — wire SessionBroadcastService in M13
-
-        return new JoinRoomResponse(roomId, joinedAt);
+        return new JoinRoomResponse(roomId, room.getName(), joinedAt);
     }
 
     // T078 — teacher leave room
@@ -187,6 +182,5 @@ public class BreakoutService {
                 .orElseThrow(() -> new NotFoundException("Breakout room not found"));
 
         log.info("Teacher left breakout room {} in breakout {} of session {}", roomId, breakoutId, sessionId);
-        // Broadcast teacher_left_room — wire SessionBroadcastService in M13
     }
 }

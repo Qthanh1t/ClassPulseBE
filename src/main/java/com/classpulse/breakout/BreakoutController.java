@@ -1,6 +1,7 @@
 package com.classpulse.breakout;
 
 import com.classpulse.common.response.ApiResponse;
+import com.classpulse.session.SessionBroadcastService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "Breakout Rooms")
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class BreakoutController {
 
     private final BreakoutService breakoutService;
+    private final SessionBroadcastService broadcastService;
 
     @Operation(summary = "Create breakout session [OWNER]")
     @PostMapping
@@ -27,7 +31,17 @@ public class BreakoutController {
             @PathVariable UUID sessionId,
             @Valid @RequestBody CreateBreakoutRequest request) {
         BreakoutSessionDto dto = breakoutService.create(sessionId, request);
-        // Broadcast breakout_started wired in M13
+        broadcastService.broadcastToSession(sessionId, "breakout_started", Map.of(
+                "breakoutSessionId", dto.breakoutSessionId(),
+                "rooms", dto.rooms().stream().map(r -> {
+                    Map<String, Object> room = new HashMap<>();
+                    room.put("id", r.id());
+                    room.put("name", r.name());
+                    if (r.task() != null) room.put("task", r.task());
+                    room.put("studentIds", r.students().stream().map(BreakoutSessionDto.StudentInfo::id).toList());
+                    return room;
+                }).toList()
+        ));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(dto));
     }
 
@@ -44,7 +58,8 @@ public class BreakoutController {
             @PathVariable UUID sessionId,
             @PathVariable UUID breakoutId) {
         BreakoutEndResponse response = breakoutService.end(sessionId, breakoutId);
-        // Broadcast breakout_ended wired in M13
+        broadcastService.broadcastToSession(sessionId, "breakout_ended",
+                Map.of("breakoutSessionId", breakoutId));
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
@@ -55,8 +70,12 @@ public class BreakoutController {
             @PathVariable UUID sessionId,
             @PathVariable UUID breakoutId,
             @Valid @RequestBody BroadcastRequest request) {
-        // Broadcast broadcast_message wired in M13
-        return ResponseEntity.ok(ApiResponse.ok(breakoutService.broadcast(sessionId, breakoutId, request)));
+        BroadcastResponse response = breakoutService.broadcast(sessionId, breakoutId, request);
+        broadcastService.broadcastToSession(sessionId, "broadcast_message", Map.of(
+                "content", request.getContent(),
+                "sentAt", response.sentAt()
+        ));
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
     @Operation(summary = "Teacher join breakout room [OWNER]")
@@ -66,8 +85,12 @@ public class BreakoutController {
             @PathVariable UUID sessionId,
             @PathVariable UUID breakoutId,
             @PathVariable UUID roomId) {
-        // Broadcast teacher_joined_room wired in M13
-        return ResponseEntity.ok(ApiResponse.ok(breakoutService.joinRoom(sessionId, breakoutId, roomId)));
+        JoinRoomResponse response = breakoutService.joinRoom(sessionId, breakoutId, roomId);
+        broadcastService.broadcastToRoom(sessionId, roomId, "teacher_joined_room", Map.of(
+                "roomId", roomId,
+                "roomName", response.roomName()
+        ));
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
     @Operation(summary = "Teacher leave breakout room [OWNER]")
@@ -78,7 +101,8 @@ public class BreakoutController {
             @PathVariable UUID breakoutId,
             @PathVariable UUID roomId) {
         breakoutService.leaveRoom(sessionId, breakoutId, roomId);
-        // Broadcast teacher_left_room wired in M13
+        broadcastService.broadcastToRoom(sessionId, roomId, "teacher_left_room",
+                Map.of("roomId", roomId));
         return ResponseEntity.noContent().build();
     }
 }

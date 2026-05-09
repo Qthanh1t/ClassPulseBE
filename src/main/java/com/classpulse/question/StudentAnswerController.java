@@ -33,6 +33,7 @@ public class StudentAnswerController {
             @Valid @RequestBody SubmitAnswerRequest request) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         StudentAnswerDto dto = studentAnswerService.submit(sessionId, questionId, principal.userId(), request);
+        studentAnswerService.broadcastAnswerAggregate(sessionId, questionId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(dto));
     }
 

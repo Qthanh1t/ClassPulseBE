@@ -1,6 +1,7 @@
 package com.classpulse.question;
 
 import com.classpulse.common.response.ApiResponse;
+import com.classpulse.session.SessionBroadcastService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -10,7 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "Questions")
@@ -20,6 +23,7 @@ import java.util.UUID;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final SessionBroadcastService broadcastService;
 
     @Operation(summary = "List questions in session [AUTH]")
     @GetMapping("/questions")
@@ -43,7 +47,22 @@ public class QuestionController {
     public ResponseEntity<ApiResponse<QuestionStartResponse>> start(
             @PathVariable UUID sessionId,
             @PathVariable UUID questionId) {
-        return ResponseEntity.ok(ApiResponse.ok(questionService.start(sessionId, questionId)));
+        QuestionStartResponse resp = questionService.start(sessionId, questionId);
+        QuestionDto question = questionService.get(sessionId, questionId);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("questionId", questionId);
+        payload.put("type", question.type());
+        payload.put("content", question.content());
+        if (question.options() != null && !question.options().isEmpty()) {
+            payload.put("options", question.options());
+        }
+        if (resp.endsAt() != null) {
+            payload.put("endsAt", resp.endsAt());
+        }
+        broadcastService.broadcastToSession(sessionId, "question_started", payload);
+
+        return ResponseEntity.ok(ApiResponse.ok(resp));
     }
 
     @Operation(summary = "End question [OWNER]")
@@ -52,7 +71,10 @@ public class QuestionController {
     public ResponseEntity<ApiResponse<QuestionEndResponse>> end(
             @PathVariable UUID sessionId,
             @PathVariable UUID questionId) {
-        return ResponseEntity.ok(ApiResponse.ok(questionService.end(sessionId, questionId)));
+        QuestionEndResponse resp = questionService.end(sessionId, questionId);
+        broadcastService.broadcastToSession(sessionId, "question_ended",
+                Map.of("questionId", questionId));
+        return ResponseEntity.ok(ApiResponse.ok(resp));
     }
 
     @Operation(summary = "Get question stats [OWNER]")

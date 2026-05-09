@@ -294,6 +294,7 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T080 | WebSocketConfig — `@EnableWebSocketMessageBroker`, `enableSimpleBroker("/topic", "/queue")`, app prefix `/app`, user prefix `/user`, endpoint `/ws` + SockJS fallback + allowed origins; CORS `corsConfigurationSource` mở thêm `/ws/**` | `config/WebSocketConfig.java`, `config/SecurityConfig.java` |
 | T081 | JwtHandshakeHandler + StompPrincipal — `DefaultHandshakeHandler` extract ticket từ query param `?ticket=xxx`, `WsTicketService.validateAndConsume()`, load user từ DB, trả `StompPrincipal(userId, role, name)` với `getName()=userId.toString()`; `StompPrincipal` record implements `Principal` | `common/security/JwtHandshakeHandler.java`, `common/security/StompPrincipal.java` |
 | T082 | JwtChannelInterceptor — `ChannelInterceptor` kiểm tra Principal tồn tại tại mỗi STOMP SEND/SUBSCRIBE frame; throw `AccessDeniedException` nếu null; wired vào `configureClientInboundChannel` | `common/security/JwtChannelInterceptor.java`, `config/WebSocketConfig.java` |
+| T083 | SessionBroadcastService — `SimpMessagingTemplate` wrapper: `broadcastToSession` (→ `/topic/session/{id}`), `sendToUser` (→ `/user/queue/private`), `broadcastToRoom` (→ `/topic/session/{id}/room/{roomId}`); wired trong `QuestionController` (question_started, question_ended), `StudentAnswerController` (answer_aggregate → teacher), `BreakoutController` (breakout_started, breakout_ended, broadcast_message, teacher_joined_room, teacher_left_room), `QuestionTimerService` (question_ended sau auto-end); `QuestionRepository.findByIdWithOptions`, `StudentAnswerService.broadcastAnswerAggregate` | `session/SessionBroadcastService.java`, `question/QuestionController.java`, `question/StudentAnswerController.java`, `question/StudentAnswerService.java`, `breakout/BreakoutController.java`, `question/QuestionTimerService.java` |
 
 ### In Progress
 
@@ -301,4 +302,4 @@ _(none)_
 
 ### Next
 
-T083 — SessionBroadcastService (M13)
+T084 — Presence tracking (M13)
