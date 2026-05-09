@@ -277,10 +277,17 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T073 | StudentAnswerService (view) — teacher: tất cả answers JOIN FETCH student; student: chỉ own answer (wrapped in List); check question exists trước | `question/StudentAnswerService.java` |
 | T074 | StudentAnswerController — 2 endpoints: POST /sessions/{sessionId}/questions/{questionId}/answers [STUDENT] → 201, GET /sessions/{sessionId}/questions/{questionId}/answers [AUTH]; class-level `@RequestMapping("/api/v1/sessions/{sessionId}/questions/{questionId}/answers")` | `question/StudentAnswerController.java` |
 
+#### M12 — Breakout (T075–T076)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T075 | Flyway V9: breakout tables — DDL `breakout_sessions` (id, session_id FK, started_at, ended_at), `breakout_rooms` (id, breakout_session_id FK CASCADE, name, task, room_order), `breakout_assignments` (composite PK room_id+student_id) + indexes | `db/migration/V9__create_breakout.sql` |
+| T076 | Breakout entities + repositories — `BreakoutSession` (@CreatedDate startedAt, OneToMany rooms); `BreakoutRoom` (ManyToOne breakoutSession, OneToMany assignments); `BreakoutAssignmentId` (@Embeddable); `BreakoutAssignment` (@EmbeddedId + @MapsId room/student); 3 repos: `findActiveBySessionId`, `findByIdAndSession_Id`, `findByBreakoutSession_IdWithStudents` (JOIN FETCH), `findByIdAndBreakoutSession_Id` | `breakout/BreakoutSession.java`, `breakout/BreakoutRoom.java`, `breakout/BreakoutAssignmentId.java`, `breakout/BreakoutAssignment.java`, `breakout/BreakoutSessionRepository.java`, `breakout/BreakoutRoomRepository.java`, `breakout/BreakoutAssignmentRepository.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T075 — Breakout (M12)
+T077 — BreakoutService (create) (M12)
