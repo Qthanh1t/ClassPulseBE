@@ -283,6 +283,9 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 |------|-------|---------|
 | T075 | Flyway V9: breakout tables — DDL `breakout_sessions` (id, session_id FK, started_at, ended_at), `breakout_rooms` (id, breakout_session_id FK CASCADE, name, task, room_order), `breakout_assignments` (composite PK room_id+student_id) + indexes | `db/migration/V9__create_breakout.sql` |
 | T076 | Breakout entities + repositories — `BreakoutSession` (@CreatedDate startedAt, OneToMany rooms); `BreakoutRoom` (ManyToOne breakoutSession, OneToMany assignments); `BreakoutAssignmentId` (@Embeddable); `BreakoutAssignment` (@EmbeddedId + @MapsId room/student); 3 repos: `findActiveBySessionId`, `findByIdAndSession_Id`, `findByBreakoutSession_IdWithStudents` (JOIN FETCH), `findByIdAndBreakoutSession_Id` | `breakout/BreakoutSession.java`, `breakout/BreakoutRoom.java`, `breakout/BreakoutAssignmentId.java`, `breakout/BreakoutAssignment.java`, `breakout/BreakoutSessionRepository.java`, `breakout/BreakoutRoomRepository.java`, `breakout/BreakoutAssignmentRepository.java` |
+| T077 | BreakoutService (create) — validate session active + no active breakout (ConflictException), save BreakoutSession → rooms → assignments sequentially (để lấy room.getId()), reload với JOIN FETCH student, trả `BreakoutSessionDto`; broadcast TODO M13 | `breakout/BreakoutService.java`, `breakout/CreateBreakoutRequest.java`, `breakout/CreateRoomRequest.java`, `breakout/BreakoutSessionDto.java` |
+| T078 | BreakoutService (end + broadcast + room ops) — `getActive` (findActiveBySessionId → null if none); `end` (validate not ended, set endedAt); `broadcast` (validate active, count active students → BroadcastResponse); `joinRoom`/`leaveRoom` (validate breakout+room exist + not ended); all broadcast TODO M13 | `breakout/BreakoutService.java`, `breakout/BreakoutEndResponse.java`, `breakout/BroadcastRequest.java`, `breakout/BroadcastResponse.java`, `breakout/JoinRoomResponse.java` |
+| T079 | BreakoutController — 6 endpoints: POST /breakouts [OWNER]→201, GET /breakouts/active [AUTH], POST /breakouts/{id}/end [OWNER], POST /breakouts/{id}/broadcast [OWNER], POST /breakouts/{id}/rooms/{rid}/join [OWNER], POST /breakouts/{id}/rooms/{rid}/leave [OWNER]→204; class-level `@RequestMapping("/api/v1/sessions/{sessionId}/breakouts")` | `breakout/BreakoutController.java` |
 
 ### In Progress
 
@@ -290,4 +293,4 @@ _(none)_
 
 ### Next
 
-T077 — BreakoutService (create) (M12)
+T080 — Realtime/WebSocket (M13)
