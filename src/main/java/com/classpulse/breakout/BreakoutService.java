@@ -6,6 +6,7 @@ import com.classpulse.common.exception.NotFoundException;
 import com.classpulse.session.SessionPresenceRepository;
 import com.classpulse.session.SessionRepository;
 import com.classpulse.session.SessionStatus;
+import com.classpulse.user.User;
 import com.classpulse.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,7 +49,18 @@ public class BreakoutService {
         BreakoutSession breakoutSession = breakoutSessionRepository.save(
                 BreakoutSession.builder().session(session).build());
 
+        // Pre-load all assigned students in one query to avoid N+1
+        List<UUID> allStudentIds = request.getRooms().stream()
+                .filter(r -> r.getStudentIds() != null)
+                .flatMap(r -> r.getStudentIds().stream())
+                .distinct()
+                .toList();
+        Map<UUID, User> userMap = userRepository.findAllById(allStudentIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        List<BreakoutSessionDto.RoomDto> roomDtos = new ArrayList<>();
         List<CreateRoomRequest> roomRequests = request.getRooms();
+
         for (int i = 0; i < roomRequests.size(); i++) {
             CreateRoomRequest roomReq = roomRequests.get(i);
             BreakoutRoom room = breakoutRoomRepository.save(BreakoutRoom.builder()
@@ -55,6 +70,7 @@ public class BreakoutService {
                     .roomOrder((short) (i + 1))
                     .build());
 
+            List<BreakoutSessionDto.StudentInfo> students = new ArrayList<>();
             if (roomReq.getStudentIds() != null) {
                 for (UUID studentId : roomReq.getStudentIds()) {
                     breakoutAssignmentRepository.save(BreakoutAssignment.builder()
@@ -62,18 +78,24 @@ public class BreakoutService {
                             .room(room)
                             .student(userRepository.getReferenceById(studentId))
                             .build());
+                    User u = userMap.get(studentId);
+                    if (u != null) {
+                        students.add(new BreakoutSessionDto.StudentInfo(u.getId(), u.getName(), u.getAvatarColor()));
+                    }
                 }
             }
+            roomDtos.add(new BreakoutSessionDto.RoomDto(room.getId(), room.getName(), room.getTask(), room.getRoomOrder(), students));
         }
-
-        List<BreakoutRoom> roomsWithStudents = breakoutRoomRepository
-                .findByBreakoutSession_IdWithStudents(breakoutSession.getId());
 
         log.info("Created breakout session {} with {} rooms in session {}",
                 breakoutSession.getId(), roomRequests.size(), sessionId);
         // Broadcast breakout_started — wire SessionBroadcastService in M13
 
-        return BreakoutSessionDto.from(breakoutSession, roomsWithStudents);
+        return BreakoutSessionDto.builder()
+                .breakoutSessionId(breakoutSession.getId())
+                .startedAt(breakoutSession.getStartedAt())
+                .rooms(roomDtos)
+                .build();
     }
 
     // T078 — get active
