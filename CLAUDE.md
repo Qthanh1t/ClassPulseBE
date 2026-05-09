@@ -301,6 +301,8 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T087 | Chat WS + REST — `ChatSendRequest` (content @NotBlank @Size(2000), breakoutRoomId nullable); `ChatMessageDto` (nested SenderInfo: id/name/role/avatarColor); `ChatCursorMeta` (hasMore, oldestId); `ChatService.send()` (validate session active + participant + breakout room ownership, save, return dto); `ChatService.getHistory()` (cursor pagination, reverse DESC→chronological); `ChatWsController` @MessageMapping `/session/{id}/chat` → broadcast to room or session; `ChatController` GET `/sessions/{id}/chat` [PARTICIPANT]; `BreakoutRoomRepository.existsByIdAndBreakoutSession_Session_Id` added | `chat/ChatSendRequest.java`, `chat/ChatMessageDto.java`, `chat/ChatCursorMeta.java`, `chat/ChatService.java`, `chat/ChatWsController.java`, `chat/ChatController.java`, `breakout/BreakoutRoomRepository.java` |
 | T088 | Raise hand WS — `RaisedHand` entity (@CreatedDate eventAt, ManyToOne Session/User lazy); `RaisedHandRepository`; `RaiseHandRequest` (raised boolean); `RaiseHandWsController` @MessageMapping `/session/{id}/raise-hand`: STUDENT only, Redis SADD/SREM `session:{id}:raised_hands`, save to DB, broadcast `raise_hand_changed {studentId, raised}` | `session/RaisedHand.java`, `session/RaisedHandRepository.java`, `session/RaiseHandRequest.java`, `session/RaiseHandWsController.java` |
 | T089 | Focus student WS — `FocusStudentRequest` (studentId UUID nullable); `FocusWsController` @MessageMapping `/session/{id}/focus`: TEACHER only, broadcast `focus_changed {focusedStudentId}` (null = unfocus) | `session/FocusStudentRequest.java`, `session/FocusWsController.java` |
+| T090 | WebRTC Signaling controller — `WebRtcSdpRequest` (targetId UUID, sdp String); `WebRtcIceRequest` (targetId UUID, candidate Object); `WebRtcSignalingController`: 3 @MessageMapping handlers `/webrtc/offer`, `/webrtc/answer`, `/webrtc/ice-candidate` → `broadcastService.sendToUser(targetId, type, { fromId, sdp/candidate })` unicast via `/user/queue/private` | `session/WebRtcSdpRequest.java`, `session/WebRtcIceRequest.java`, `session/WebRtcSignalingController.java` |
+| T091 | Heartbeat handler — `HeartbeatWsController` @MessageMapping `/session/{id}/heartbeat`: no-op body, resets STOMP idle timer | `session/HeartbeatWsController.java` |
 
 ### In Progress
 
@@ -308,4 +310,4 @@ _(none)_
 
 ### Next
 
-T090 — WebRTC Signaling controller (M13)
+T092 — Flyway V11: session_student_summaries trigger / Dashboard (M14)
