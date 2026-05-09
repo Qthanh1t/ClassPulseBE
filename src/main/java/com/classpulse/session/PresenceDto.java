@@ -16,6 +16,7 @@ public class PresenceDto {
     private String name;
     private String avatarColor;
     private Instant joinedAt;
+    private Instant leftAt;
     private boolean isOnline;
 
     public static PresenceDto from(SessionPresence presence, boolean isOnline) {
@@ -24,6 +25,7 @@ public class PresenceDto {
                 .name(presence.getStudent().getName())
                 .avatarColor(presence.getStudent().getAvatarColor())
                 .joinedAt(presence.getJoinedAt())
+                .leftAt(presence.getLeftAt())
                 .isOnline(isOnline)
                 .build();
     }
