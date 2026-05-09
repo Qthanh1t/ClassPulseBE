@@ -287,10 +287,18 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T078 | BreakoutService (end + broadcast + room ops) — `getActive` (findActiveBySessionId → null if none); `end` (validate not ended, set endedAt); `broadcast` (validate active, count active students → BroadcastResponse); `joinRoom`/`leaveRoom` (validate breakout+room exist + not ended); all broadcast TODO M13 | `breakout/BreakoutService.java`, `breakout/BreakoutEndResponse.java`, `breakout/BroadcastRequest.java`, `breakout/BroadcastResponse.java`, `breakout/JoinRoomResponse.java` |
 | T079 | BreakoutController — 6 endpoints: POST /breakouts [OWNER]→201, GET /breakouts/active [AUTH], POST /breakouts/{id}/end [OWNER], POST /breakouts/{id}/broadcast [OWNER], POST /breakouts/{id}/rooms/{rid}/join [OWNER], POST /breakouts/{id}/rooms/{rid}/leave [OWNER]→204; class-level `@RequestMapping("/api/v1/sessions/{sessionId}/breakouts")` | `breakout/BreakoutController.java` |
 
+#### M13 — Realtime/WebSocket (T080–T091)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T080 | WebSocketConfig — `@EnableWebSocketMessageBroker`, `enableSimpleBroker("/topic", "/queue")`, app prefix `/app`, user prefix `/user`, endpoint `/ws` + SockJS fallback + allowed origins; CORS `corsConfigurationSource` mở thêm `/ws/**` | `config/WebSocketConfig.java`, `config/SecurityConfig.java` |
+| T081 | JwtHandshakeHandler + StompPrincipal — `DefaultHandshakeHandler` extract ticket từ query param `?ticket=xxx`, `WsTicketService.validateAndConsume()`, load user từ DB, trả `StompPrincipal(userId, role, name)` với `getName()=userId.toString()`; `StompPrincipal` record implements `Principal` | `common/security/JwtHandshakeHandler.java`, `common/security/StompPrincipal.java` |
+| T082 | JwtChannelInterceptor — `ChannelInterceptor` kiểm tra Principal tồn tại tại mỗi STOMP SEND/SUBSCRIBE frame; throw `AccessDeniedException` nếu null; wired vào `configureClientInboundChannel` | `common/security/JwtChannelInterceptor.java`, `config/WebSocketConfig.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T080 — Realtime/WebSocket (M13)
+T083 — SessionBroadcastService (M13)
