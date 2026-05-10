@@ -28,4 +28,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     @Query("SELECT s.id FROM Session s WHERE s.status = com.classpulse.session.SessionStatus.active")
     List<UUID> findActiveIds();
+
+    long countByStatus(SessionStatus status);
 }

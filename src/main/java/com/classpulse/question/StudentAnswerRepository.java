@@ -18,4 +18,10 @@ public interface StudentAnswerRepository extends JpaRepository<StudentAnswer, UU
     boolean existsByQuestion_IdAndStudent_Id(UUID questionId, UUID studentId);
 
     long countByQuestion_Id(UUID questionId);
+
+    @Query("SELECT a FROM StudentAnswer a JOIN FETCH a.student JOIN FETCH a.question WHERE a.question.session.id = :sessionId")
+    List<StudentAnswer> findBySessionId(@Param("sessionId") UUID sessionId);
+
+    @Query("SELECT a FROM StudentAnswer a JOIN FETCH a.question WHERE a.question.session.id = :sessionId AND a.student.id = :studentId")
+    List<StudentAnswer> findBySessionIdAndStudentId(@Param("sessionId") UUID sessionId, @Param("studentId") UUID studentId);
 }

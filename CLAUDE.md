@@ -304,10 +304,32 @@ Sprint plan: 7 sprints × 2 tuần. Tasks: T001–T098.
 | T090 | WebRTC Signaling controller — `WebRtcSdpRequest` (targetId UUID, sdp String); `WebRtcIceRequest` (targetId UUID, candidate Object); `WebRtcSignalingController`: 3 @MessageMapping handlers `/webrtc/offer`, `/webrtc/answer`, `/webrtc/ice-candidate` → `broadcastService.sendToUser(targetId, type, { fromId, sdp/candidate })` unicast via `/user/queue/private` | `session/WebRtcSdpRequest.java`, `session/WebRtcIceRequest.java`, `session/WebRtcSignalingController.java` |
 | T091 | Heartbeat handler — `HeartbeatWsController` @MessageMapping `/session/{id}/heartbeat`: no-op body, resets STOMP idle timer | `session/HeartbeatWsController.java` |
 
+#### M14 — Dashboard (T092–T094)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T092 | SessionSummaryComputeJob — `@Async @Transactional computeAsync(sessionId)` triggered từ `SessionController.end()` sau khi transaction commit; `compute(sessionId)` synchronous cho on-demand fallback (R05); query presences + ended questions + answers → group by student → upsert `SessionStudentSummary` (scorePercent = correctCount/totalQuestions*100); `@EnableAsync` thêm vào `ClasspulseApplication`; `SessionStudentSummaryRepository` mới | `dashboard/SessionSummaryComputeJob.java`, `session/SessionStudentSummaryRepository.java`, `session/SessionController.java`, `ClasspulseApplication.java` |
+| T093 | DashboardService — validate session.status=ended; load summaries (on-demand compute nếu chưa có); build `DashboardResponse` (sessionId, startedAt/endedAt, durationSeconds, totalStudents, totalQuestions, overallStats(avgScorePercent, participantCount), questions(QuestionSummary với OptionResult), students(StudentResult sorted by score DESC)); `StudentAnswerRepository.findBySessionId` thêm JOIN FETCH student+question | `dashboard/DashboardService.java`, `dashboard/DashboardResponse.java`, `question/StudentAnswerRepository.java` |
+| T094 | DashboardController — `GET /api/v1/sessions/{sessionId}/dashboard` `@PreAuthorize("@sessionSecurity.isOwner(...)")` | `dashboard/DashboardController.java` |
+
+#### M15 — Student Review (T095–T096)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T095 | StudentReviewService — validate session.status=ended; load ended questions + student's own answers; build `ReviewResponse` (sessionId, startedAt/endedAt, totalQuestions, answeredCount, correctCount, skippedCount, scorePercent từ summary); per-question `QuestionReview` (mySelectedOptionIds, myEssayText, confidence, options với selectedByMe flag, result: correct/wrong/skipped/pending_review cho essay); `StudentAnswerRepository.findBySessionIdAndStudentId` thêm | `review/StudentReviewService.java`, `review/ReviewResponse.java`, `question/StudentAnswerRepository.java` |
+| T096 | StudentReviewController — `GET /api/v1/sessions/{sessionId}/review` `@PreAuthorize("hasRole('STUDENT') and @sessionSecurity.isParticipant(...)")` | `review/StudentReviewController.java` |
+
+#### M16 — Admin (T097–T098)
+
+| Task | Mô tả | File(s) |
+|------|-------|---------|
+| T097 | AdminService — `getStats()`: count users total/by role, classrooms active/archived, active sessions; `listClassrooms()`: paginated ALL classrooms (kể cả archived) với optional search (name/subject/teacher name), dùng `ClassroomDto.from`; thêm `countByRole` vào `UserRepository`, `countByIsArchivedFalse/True` + `findAllFiltered` (JPQL paginated + countQuery) vào `ClassroomRepository`, `countByStatus` vào `SessionRepository` | `admin/AdminService.java`, `admin/AdminStatsDto.java`, `user/UserRepository.java`, `classroom/ClassroomRepository.java`, `session/SessionRepository.java` |
+| T098 | AdminController — `GET /api/v1/admin/stats [ADMIN]`, `GET /api/v1/admin/classrooms [ADMIN]` với `?search&page&limit`; class-level `@PreAuthorize("hasRole('ADMIN')")` | `admin/AdminController.java` |
+
 ### In Progress
 
 _(none)_
 
 ### Next
 
-T092 — Flyway V11: session_student_summaries trigger / Dashboard (M14)
+Sprint 7 — Testing & Hardening (T001–T098 tất cả đã implement)

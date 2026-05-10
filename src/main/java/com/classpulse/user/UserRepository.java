@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
            "(:search IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "                 OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> findFiltered(@Param("role") Role role, @Param("search") String search, Pageable pageable);
+
+    long countByRole(Role role);
 }

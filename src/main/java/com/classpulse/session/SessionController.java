@@ -3,6 +3,7 @@ package com.classpulse.session;
 import com.classpulse.common.response.ApiResponse;
 import com.classpulse.common.response.PageMeta;
 import com.classpulse.common.security.UserPrincipal;
+import com.classpulse.dashboard.SessionSummaryComputeJob;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class SessionController {
 
     private final SessionService sessionService;
+    private final SessionSummaryComputeJob summaryComputeJob;
 
     @Operation(summary = "Start session [OWNER]")
     @PostMapping("/classrooms/{classroomId}/sessions")
@@ -59,6 +61,7 @@ public class SessionController {
     @PreAuthorize("@sessionSecurity.isOwner(#sessionId, authentication)")
     public ResponseEntity<ApiResponse<SessionEndResponse>> end(@PathVariable UUID sessionId) {
         SessionEndResponse response = sessionService.end(sessionId);
+        summaryComputeJob.computeAsync(sessionId);
         // Broadcast session_ended wired in M13 (T083)
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
