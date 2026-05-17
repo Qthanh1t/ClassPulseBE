@@ -2,7 +2,6 @@ package com.classpulse.session;
 
 import com.classpulse.classroom.ClassroomRepository;
 import com.classpulse.common.exception.BusinessException;
-import com.classpulse.common.exception.ConflictException;
 import com.classpulse.common.exception.NotFoundException;
 import com.classpulse.common.response.PageMeta;
 import com.classpulse.common.security.WsTicketService;
@@ -10,6 +9,7 @@ import com.classpulse.schedule.ScheduleRepository;
 import com.classpulse.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -35,12 +35,17 @@ public class SessionService {
     private final UserRepository userRepository;
     private final WsTicketService wsTicketService;
 
-    // T059 — start
+    // T059 — start (idempotent: returns existing active session if one already exists)
     @Transactional
     public SessionDto start(UUID classroomId, UUID teacherId, CreateSessionRequest request) {
-        sessionRepository.findActiveByClassroomId(classroomId).ifPresent(s -> {
-            throw new ConflictException("SESSION_ALREADY_ACTIVE", "Classroom already has an active session");
-        });
+        var existing = sessionRepository.findActiveByClassroomId(classroomId);
+        if (existing.isPresent()) {
+            Session active = existing.get();
+            log.info("Teacher {} requested session start but classroom {} already has active session {}",
+                    teacherId, classroomId, active.getId());
+            String wsTicket = wsTicketService.generateSessionTicket(teacherId, active.getId());
+            return SessionDto.forStart(active, wsTicket);
+        }
 
         var classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new NotFoundException("Classroom not found"));
@@ -57,7 +62,20 @@ public class SessionService {
                 .status(SessionStatus.active)
                 .startedAt(Instant.now())
                 .build();
-        sessionRepository.save(session);
+
+        try {
+            sessionRepository.saveAndFlush(session);
+        } catch (DataIntegrityViolationException e) {
+            // Race condition: another thread just created an active session.
+            // The unique partial index on (classroom_id) WHERE status='active' blocked us.
+            Session active = sessionRepository.findActiveByClassroomId(classroomId)
+                    .orElseThrow(() -> new BusinessException("SESSION_CONFLICT",
+                            "Concurrent session creation conflict"));
+            log.info("Race condition resolved: returning existing session {} for classroom {}",
+                    active.getId(), classroomId);
+            String wsTicket = wsTicketService.generateSessionTicket(teacherId, active.getId());
+            return SessionDto.forStart(active, wsTicket);
+        }
 
         log.info("Teacher {} started session {} for classroom {}", teacherId, session.getId(), classroomId);
 
