@@ -75,11 +75,13 @@ Tài liệu đầy đủ trong `ClassPulseDoc/`:
 
 - **Modular Monolith** — không phải microservices. Team nhỏ, WS dễ quản lý hơn.
 - **JWT stateless** — access token trong memory (React state), refresh token trong httpOnly cookie.
-- **WS Ticket** — one-time Redis token (60s TTL) để auth WebSocket handshake (không dùng JWT header cho WS).
+- **WS Ticket** — one-time Redis token (60s TTL) để auth WebSocket handshake (không dùng JWT header cho WS). Ticket **phải truyền qua URL query param** `?ticket=xxx` trong SockJS URL — `JwtHandshakeHandler.extractTicket()` đọc từ HTTP query string tại lúc HTTP upgrade; không đọc được STOMP `connectHeaders` (STOMP-level, post-handshake).
+- **WebSocket CORS** — `WebSocketConfig.setAllowedOriginPatterns` (SockJS-level CORS, tách biệt với Spring Security CORS) cho phép `http://localhost:*`, `http://192.168.*:*`, `http://10.*:*` để hỗ trợ test 2 thiết bị cùng LAN. Thiếu LAN pattern này → phone bị chặn ngay tại HTTP upgrade.
 - **Server-side timer** — `QuestionTimerService` dùng `ScheduledExecutorService`. Client countdown từ `endsAt` timestamp của server, không tin client clock.
 - **Presigned URL** — file upload thẳng lên MinIO, không đi qua Spring server.
 - **Precomputed summaries** — `session_student_summaries` được tính async sau khi session ended, dashboard chỉ SELECT.
 - **STOMP destinations**: `/topic/session/{id}` (broadcast all), `/topic/session/{id}/room/{roomId}` (breakout room), `/user/queue/private` (unicast).
+- **TURN server** — Coturn dùng `lt-cred-mech` với static credentials `classpulse`/`secret123` (khớp với `src/config/webrtc.ts` ở frontend). Production: đổi sang `use-auth-secret` + TLS + HMAC time-based credentials sinh server-side.
 
 ## API Conventions
 

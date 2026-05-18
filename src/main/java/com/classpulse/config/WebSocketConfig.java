@@ -34,7 +34,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setHandshakeHandler(jwtHandshakeHandler)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
-                        "http://localhost:*",   // allow all localhost ports (dev + integration tests)
+                        "http://localhost:*",       // dev + integration tests
+                        "http://192.168.*:*",       // LAN testing (phone on same network)
+                        "http://10.*:*",            // LAN testing (10.x.x.x range)
                         "https://classpulse.app")
                 .withSockJS();
     }
