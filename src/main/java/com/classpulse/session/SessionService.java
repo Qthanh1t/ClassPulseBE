@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class SessionService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
     private final WsTicketService wsTicketService;
+    private final StringRedisTemplate redisTemplate;
 
     // T059 — start (idempotent: returns existing active session if one already exists)
     @Transactional
@@ -169,6 +171,7 @@ public class SessionService {
             throw new NotFoundException("Session not found");
         }
         presenceRepository.updateLeftAt(sessionId, studentId, Instant.now());
+        redisTemplate.opsForSet().remove("session:" + sessionId + ":presence", studentId.toString());
         log.info("Student {} left session {}", studentId, sessionId);
     }
 

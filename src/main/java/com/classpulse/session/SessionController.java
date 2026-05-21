@@ -25,6 +25,7 @@ public class SessionController {
 
     private final SessionService sessionService;
     private final SessionSummaryComputeJob summaryComputeJob;
+    private final SessionBroadcastService broadcastService;
 
     @Operation(summary = "Start session [OWNER]")
     @PostMapping("/classrooms/{classroomId}/sessions")
@@ -82,6 +83,8 @@ public class SessionController {
             @PathVariable UUID sessionId,
             @AuthenticationPrincipal UserPrincipal principal) {
         sessionService.leave(sessionId, principal.userId());
+        broadcastService.broadcastToSession(sessionId, "student_presence",
+                Map.of("studentId", principal.userId(), "action", "left"));
         return ResponseEntity.noContent().build();
     }
 
