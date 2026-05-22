@@ -112,8 +112,8 @@ Spring Boot (Modular Monolith — 15 feature modules)
 
 | Direction | Events |
 |-----------|--------|
-| Server → All | `session_started`, `session_ended`, `question_started`, `question_ended`, `answer_aggregate`, `breakout_started`, `breakout_ended`, `broadcast_message`, `student_presence`, `raise_hand_changed`, `chat_message`, `focus_changed`, `silent_alert` |
-| Client → Server | `raise_hand`, `chat_send`, `focus_student`, `webrtc_offer`, `webrtc_answer`, `webrtc_ice_candidate`, `heartbeat` |
+| Server → All | `session_ended`, `question_started`, `question_ended`, `answer_aggregate`, `breakout_started`, `breakout_ended`, `broadcast_message`, `student_presence`, `raise_hand_changed`, `chat_message`, `focus_changed`, `silent_alert`, `camera_state_changed` |
+| Client → Server | `raise_hand`, `camera_state`, `chat_send`, `focus_student`, `webrtc_offer`, `webrtc_answer`, `webrtc_ice_candidate`, `heartbeat` |
 
 > Chi tiết payload: [03_API_Design.md → Module 15](03_API_Design.md)  
 > Implementation: [04_Realtime_Architecture.md](04_Realtime_Architecture.md)

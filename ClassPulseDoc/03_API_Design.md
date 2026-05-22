@@ -1448,8 +1448,7 @@ Client dùng `uploadUrl` để PUT file trực tiếp. Sau khi upload xong, gọ
 
 | Event | Khi nào | Payload |
 |-------|---------|---------|
-| `session_started` | GV bắt đầu buổi học | `{ sessionId, classroomName, teacherName }` |
-| `session_ended` | GV kết thúc buổi học | `{ sessionId }` |
+| `session_ended` | GV kết thúc buổi học | `{ sessionId, endedAt }` |
 | `question_started` | GV phát câu hỏi | `{ questionId, type, content, options (nếu MCQ), endsAt }` |
 | `question_ended` | Câu hỏi kết thúc | `{ questionId, stats: { correct, wrong, skipped, confidenceBreakdown } }` |
 | `answer_aggregate` | Có HS vừa nộp | `{ questionId, answeredCount, totalCount }` — chỉ gửi đến GV |
@@ -1463,18 +1462,20 @@ Client dùng `uploadUrl` để PUT file trực tiếp. Sau khi upload xong, gọ
 | `raise_hand_changed` | HS giơ/hạ tay | `{ studentId, raised: boolean }` |
 | `chat_message` | Tin nhắn chat | `{ id, senderId, senderName, senderRole, avatarColor, content, breakoutRoomId, sentAt }` |
 | `silent_alert` | HS không trả lời | `{ silentStudentIds: ["uuid"] }` — gửi đến GV sau 30s |
+| `camera_state_changed` | Ai đó bật/tắt camera | `{ fromId, isCameraOff: boolean }` |
 
 ### Client → Server Events (gửi qua WebSocket)
 
-| Event | Ai gửi | Payload |
-|-------|--------|---------|
-| `raise_hand` | Student | `{ raised: boolean }` |
-| `chat_send` | Teacher/Student | `{ content, breakoutRoomId: null \| "uuid" }` |
-| `focus_student` | Teacher | `{ studentId: "uuid" \| null }` |
-| `webrtc_offer` | Cả hai | `{ targetId, sdp }` |
-| `webrtc_answer` | Cả hai | `{ targetId, sdp }` |
-| `webrtc_ice_candidate` | Cả hai | `{ targetId, candidate }` |
-| `heartbeat` | Cả hai | `{}` — giữ connection alive mỗi 25s |
+| Event | Ai gửi | Destination | Payload |
+|-------|--------|-------------|---------|
+| `raise_hand` | Student | `/app/session/{id}/raise-hand` | `{ raised: boolean }` |
+| `camera_state` | Teacher/Student | `/app/session/{id}/camera-state` | `{ isCameraOff: boolean }` |
+| `chat_send` | Teacher/Student | `/app/session/{id}/chat` | `{ content, breakoutRoomId: null \| "uuid" }` |
+| `focus_student` | Teacher | `/app/session/{id}/focus` | `{ studentId: "uuid" \| null }` |
+| `webrtc_offer` | Cả hai | `/app/webrtc/offer` | `{ targetId, sdp }` |
+| `webrtc_answer` | Cả hai | `/app/webrtc/answer` | `{ targetId, sdp }` |
+| `webrtc_ice_candidate` | Cả hai | `/app/webrtc/ice-candidate` | `{ targetId, candidate }` |
+| `heartbeat` | Cả hai | `/app/session/{id}/heartbeat` | `{}` — giữ connection alive mỗi 25s |
 
 ---
 

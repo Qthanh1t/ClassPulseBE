@@ -100,7 +100,7 @@ GV bấm "Kết thúc buổi học"
 ### WF-3: Session — Student Journey
 
 ```
-HS nhận [session_started] event qua WebSocket
+HS vào classroom page → GET /classrooms/{id}/sessions để detect active session
   → HS connect WebSocket + WebRTC
   → Vào StudentSessionPage
 
