@@ -36,7 +36,6 @@ public class SessionController {
             @RequestBody(required = false) CreateSessionRequest request) {
         SessionDto dto = sessionService.start(classroomId, principal.userId(),
                 request != null ? request : new CreateSessionRequest());
-        // Broadcast session_started wired in M13 (T083)
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(dto));
     }
 
@@ -63,7 +62,8 @@ public class SessionController {
     public ResponseEntity<ApiResponse<SessionEndResponse>> end(@PathVariable UUID sessionId) {
         SessionEndResponse response = sessionService.end(sessionId);
         summaryComputeJob.computeAsync(sessionId);
-        // Broadcast session_ended wired in M13 (T083)
+        broadcastService.broadcastToSession(sessionId, "session_ended",
+                Map.of("sessionId", sessionId, "endedAt", response.endedAt()));
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
