@@ -30,8 +30,14 @@ public class PresenceEventListener {
 
         redisTemplate.opsForSet().add(presenceKey(attrs.sessionId()), attrs.userId().toString());
 
-        broadcastService.broadcastToSession(attrs.sessionId(), "student_presence",
-                Map.of("studentId", attrs.userId(), "action", "joined"));
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("studentId", attrs.userId());
+        payload.put("action", "joined");
+        payload.put("name", attrs.name());
+        if (attrs.avatarColor() != null) {
+            payload.put("avatarColor", attrs.avatarColor());
+        }
+        broadcastService.broadcastToSession(attrs.sessionId(), "student_presence", payload);
 
         log.info("Student {} joined session {} via WS", attrs.userId(), attrs.sessionId());
     }
@@ -60,9 +66,11 @@ public class PresenceEventListener {
         UUID userId = parseUuid(sessionAttrs.get("userId"));
         UUID sessionId = parseUuid(sessionAttrs.get("sessionId"));
         String role = (String) sessionAttrs.get("userRole");
+        String name = (String) sessionAttrs.get("userName");
+        String avatarColor = (String) sessionAttrs.get("userAvatarColor");
 
         if (userId == null || sessionId == null || role == null) return null;
-        return new Attrs(userId, sessionId, role);
+        return new Attrs(userId, sessionId, role, name != null ? name : "Học sinh", avatarColor);
     }
 
     private UUID parseUuid(Object val) {
@@ -78,5 +86,5 @@ public class PresenceEventListener {
         return "session:" + sessionId + ":presence";
     }
 
-    private record Attrs(UUID userId, UUID sessionId, String role) {}
+    private record Attrs(UUID userId, UUID sessionId, String role, String name, String avatarColor) {}
 }

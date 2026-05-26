@@ -39,6 +39,10 @@ public class JwtHandshakeHandler extends DefaultHandshakeHandler {
                 .map(user -> {
                     attributes.put("userId", user.getId().toString());
                     attributes.put("userRole", user.getRole().name());
+                    attributes.put("userName", user.getName());
+                    if (user.getAvatarColor() != null) {
+                        attributes.put("userAvatarColor", user.getAvatarColor());
+                    }
                     if (data.sessionId() != null) {
                         attributes.put("sessionId", data.sessionId().toString());
                     }

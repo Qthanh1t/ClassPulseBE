@@ -1,6 +1,7 @@
 package com.classpulse.session;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -17,6 +18,7 @@ public class PresenceDto {
     private String avatarColor;
     private Instant joinedAt;
     private Instant leftAt;
+    @JsonProperty("isOnline")
     private boolean isOnline;
 
     public static PresenceDto from(SessionPresence presence, boolean isOnline) {
