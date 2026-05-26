@@ -70,6 +70,9 @@ Package convention: `com.classpulse.<module>.<layer>` (feature-first).
 - **Modular Monolith** — không phải microservices.
 - **JWT stateless** — access token trong memory (React state), refresh token trong httpOnly cookie.
 - **WS Ticket** — one-time Redis token (60s TTL). Ticket **phải truyền qua URL query param** `?ticket=xxx` trong SockJS URL — `JwtHandshakeHandler.extractTicket()` đọc từ HTTP query string tại HTTP upgrade; không đọc được STOMP `connectHeaders`.
+- **WS Session Attributes** — `JwtHandshakeHandler` lưu vào `attributes`: `userId`, `userRole`, `sessionId`, `userName`, `userAvatarColor`. `PresenceEventListener` đọc trực tiếp từ đây để không cần DB lookup thêm.
+- **Presence event timing** — `PresenceEventListener` dùng `SessionConnectEvent` (CONNECT frame đến), **trước** khi STOMP CONNECTED frame gửi về → student mới chưa subscribe `/user/queue/private`. Frontend xử lý WebRTC offer trong `onConnected` callback, không phải trong handler của `student_presence`.
+- **Lombok boolean + Jackson** — field `private boolean isXxx` với `@Getter` sinh `isXxx()`. Jackson bỏ prefix `is` → JSON field thành `xxx`. Nếu frontend expect `isXxx`, phải annotate `@JsonProperty("isXxx")` trên field (xem `PresenceDto.isOnline`).
 - **WebSocket CORS** — `WebSocketConfig.setAllowedOriginPatterns` (SockJS-level, tách biệt Spring Security CORS) cho phép `http://localhost:*`, `http://192.168.*:*`, `http://10.*:*`. Thiếu LAN pattern → phone bị chặn tại HTTP upgrade.
 - **Server-side timer** — `QuestionTimerService` dùng `ScheduledExecutorService`. Client countdown từ `endsAt` timestamp, không tin client clock.
 - **Presigned URL** — file upload thẳng lên MinIO, không qua Spring server.

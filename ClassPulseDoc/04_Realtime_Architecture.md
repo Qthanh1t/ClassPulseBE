@@ -84,14 +84,20 @@ public class JwtHandshakeHandler extends DefaultHandshakeHandler {
         String ticket = extractTicket(request);
 
         // 2. Validate ticket trong Redis (one-time use)
-        String userId = redisTemplate.opsForValue().getAndDelete("ws_ticket:" + ticket);
-        if (userId == null) throw new IllegalArgumentException("Invalid or expired WS ticket");
+        WsTicketData data = wsTicketService.validateAndConsume(ticket).orElse(null);
+        if (data == null) throw new IllegalArgumentException("Invalid or expired WS ticket");
 
         // 3. Load user và set vào attributes cho các handler sau
-        UserDetails user = userService.loadById(UUID.fromString(userId));
-        attributes.put("userId", userId);
-        attributes.put("userRole", user.getRole());
-        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+        return userRepository.findById(data.userId()).map(user -> {
+            attributes.put("userId", user.getId().toString());
+            attributes.put("userRole", user.getRole().name());
+            attributes.put("userName", user.getName());            // dùng bởi PresenceEventListener
+            if (user.getAvatarColor() != null)
+                attributes.put("userAvatarColor", user.getAvatarColor());
+            if (data.sessionId() != null)
+                attributes.put("sessionId", data.sessionId().toString());
+            return (Principal) new StompPrincipal(user.getId(), user.getRole(), user.getName());
+        }).orElse(null);
     }
 }
 ```
@@ -153,22 +159,34 @@ Instance A (GV connected) ──publish──► Redis Channel: session:uuid
 
 ### Presence Tracking
 
+> **Timing note:** `PresenceEventListener` lắng nghe `SessionConnectEvent` (STOMP CONNECT frame đến server), **không phải** `SessionConnectedEvent` (CONNECTED frame gửi về client). Broadcast `student_presence` xảy ra *trước* khi client mới hoàn tất handshake và subscribe `/user/queue/private`. Các WebRTC offer gửi tới student mới ngay lúc này sẽ bị drop. Frontend xử lý bằng cách thực hiện offer trong `onConnected` callback (sau khi subscribe).
+
 ```java
 @EventListener
-public void handleConnect(SessionConnectedEvent event) {
+public void handleConnect(SessionConnectEvent event) {
     StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-    String userId = (String) sha.getSessionAttributes().get("userId");
-    String sessionId = resolveSessionId(sha);
+    Map<String, Object> attrs = sha.getSessionAttributes();
 
-    redisTemplate.opsForSet().add("session:" + sessionId + ":presence", userId);
-    broadcastService.broadcastToSession(sessionId,
-        Map.of("type", "student_presence", "payload",
-               Map.of("studentId", userId, "action", "joined")));
+    UUID userId   = UUID.fromString((String) attrs.get("userId"));
+    UUID sessionId = UUID.fromString((String) attrs.get("sessionId"));
+    String name        = (String) attrs.get("userName");
+    String avatarColor = (String) attrs.get("userAvatarColor");
+
+    redisTemplate.opsForSet().add("session:" + sessionId + ":presence", userId.toString());
+
+    // Payload: { studentId, action, name, avatarColor }
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("studentId", userId);
+    payload.put("action", "joined");
+    payload.put("name", name);
+    if (avatarColor != null) payload.put("avatarColor", avatarColor);
+    broadcastService.broadcastToSession(sessionId, "student_presence", payload);
 }
 
 @EventListener
 public void handleDisconnect(SessionDisconnectEvent event) {
-    // tương tự — remove từ Set, broadcast "left"
+    // remove khỏi Redis Set, cập nhật leftAt trong DB, broadcast "left"
+    // Payload disconnect: { studentId, action: "left" } — không cần name/avatarColor
 }
 ```
 
