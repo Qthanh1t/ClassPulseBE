@@ -5,6 +5,7 @@ import com.classpulse.common.exception.BusinessException;
 import com.classpulse.common.exception.NotFoundException;
 import com.classpulse.common.response.PageMeta;
 import com.classpulse.common.security.WsTicketService;
+import com.classpulse.schedule.Schedule;
 import com.classpulse.schedule.ScheduleRepository;
 import com.classpulse.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -130,8 +136,26 @@ public class SessionService {
         int studentCount = (int) presenceRepository.countById_SessionId(sessionId);
 
         log.info("Session {} ended after {}s with {} students", sessionId, durationSeconds, studentCount);
-        // Async summary compute will be triggered in M14 (T092)
 
+        if (session.getSchedule() == null) {
+            ZoneId zone = ZoneId.of("Asia/Ho_Chi_Minh");
+            LocalDate date = session.getStartedAt().atZone(zone).toLocalDate();
+            LocalTime startT = session.getStartedAt().atZone(zone).toLocalTime().truncatedTo(ChronoUnit.MINUTES);
+            LocalTime endT = now.atZone(zone).toLocalTime().truncatedTo(ChronoUnit.MINUTES);
+            Schedule auto = Schedule.builder()
+                    .classroom(session.getClassroom())
+                    .title("Buổi học " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                    .scheduledDate(date)
+                    .startTime(startT)
+                    .endTime(endT)
+                    .build();
+            scheduleRepository.save(auto);
+            session.setSchedule(auto);
+            sessionRepository.save(session);
+            log.info("Auto-created schedule {} for ad-hoc session {}", auto.getId(), sessionId);
+        }
+
+        // Async summary compute will be triggered in M14 (T092)
         return new SessionEndResponse(sessionId, now, durationSeconds, 0, studentCount);
     }
 

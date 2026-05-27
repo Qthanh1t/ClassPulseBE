@@ -22,7 +22,7 @@ public class ScheduleDto {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public static ScheduleDto from(Schedule s) {
+    public static ScheduleDto from(Schedule s, UUID sessionId) {
         return ScheduleDto.builder()
                 .id(s.getId())
                 .title(s.getTitle())
@@ -30,10 +30,14 @@ public class ScheduleDto {
                 .startTime(formatTime(s.getStartTime()))
                 .endTime(formatTime(s.getEndTime()))
                 .description(s.getDescription())
-                .sessionId(null)
+                .sessionId(sessionId)
                 .createdAt(s.getCreatedAt())
                 .updatedAt(s.getUpdatedAt())
                 .build();
+    }
+
+    public static ScheduleDto from(Schedule s) {
+        return from(s, null);
     }
 
     private static String formatTime(java.time.LocalTime t) {

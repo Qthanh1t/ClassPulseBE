@@ -26,6 +26,9 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     boolean existsBySchedule_Id(UUID scheduleId);
 
+    @Query("SELECT s FROM Session s WHERE s.schedule.id IN :scheduleIds")
+    List<Session> findByScheduleIdIn(@Param("scheduleIds") List<UUID> scheduleIds);
+
     @Query("SELECT s.id FROM Session s WHERE s.status = com.classpulse.session.SessionStatus.active")
     List<UUID> findActiveIds();
 

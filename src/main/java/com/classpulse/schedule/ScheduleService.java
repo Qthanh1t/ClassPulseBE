@@ -3,7 +3,9 @@ package com.classpulse.schedule;
 import com.classpulse.classroom.ClassroomRepository;
 import com.classpulse.common.exception.BusinessException;
 import com.classpulse.common.exception.NotFoundException;
+import com.classpulse.session.Session;
 import com.classpulse.session.SessionRepository;
+import com.classpulse.session.SessionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,7 +31,21 @@ public class ScheduleService {
         List<Schedule> schedules = (from != null && to != null)
                 ? scheduleRepository.findByClassroomIdAndDateBetween(classroomId, from, to)
                 : scheduleRepository.findByClassroomId(classroomId);
-        return schedules.stream().map(ScheduleDto::from).toList();
+
+        if (schedules.isEmpty()) return List.of();
+
+        List<UUID> scheduleIds = schedules.stream().map(Schedule::getId).toList();
+        Map<UUID, UUID> scheduleToSession = sessionRepository.findByScheduleIdIn(scheduleIds)
+                .stream()
+                .filter(s -> s.getStatus() == SessionStatus.ended)
+                .collect(Collectors.toMap(
+                        s -> s.getSchedule().getId(),
+                        Session::getId,
+                        (a, b) -> a));
+
+        return schedules.stream()
+                .map(s -> ScheduleDto.from(s, scheduleToSession.get(s.getId())))
+                .toList();
     }
 
     @Transactional
