@@ -9,8 +9,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -28,20 +26,12 @@ public class ChatWsController {
             Principal principal) {
         ChatMessageDto dto = chatService.send(sessionId, principal, request);
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("id", dto.id());
-        payload.put("senderId", dto.sender().id());
-        payload.put("senderName", dto.sender().name());
-        payload.put("senderRole", dto.sender().role());
-        payload.put("avatarColor", dto.sender().avatarColor());
-        payload.put("content", dto.content());
-        payload.put("breakoutRoomId", dto.breakoutRoomId());
-        payload.put("sentAt", dto.sentAt());
-
+        // Broadcast the DTO directly — Jackson serializes it to { id, sender: { id, name, role, avatarColor }, content, sentAt }
+        // which matches the ChatMessageDto interface expected by the frontend dtoToChat() function.
         if (dto.breakoutRoomId() != null) {
-            broadcastService.broadcastToRoom(sessionId, dto.breakoutRoomId(), "chat_message", payload);
+            broadcastService.broadcastToRoom(sessionId, dto.breakoutRoomId(), "chat_message", dto);
         } else {
-            broadcastService.broadcastToSession(sessionId, "chat_message", payload);
+            broadcastService.broadcastToSession(sessionId, "chat_message", dto);
         }
 
         log.info("Chat message sent in session={} by sender={}", sessionId, dto.sender().id());
