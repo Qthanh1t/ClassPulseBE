@@ -185,6 +185,7 @@ public class SessionService {
                 sessionId,
                 session.getClassroom().getName(),
                 session.getTeacher().getName(),
+                session.getTeacher().getId(),
                 wsTicket);
     }
 
