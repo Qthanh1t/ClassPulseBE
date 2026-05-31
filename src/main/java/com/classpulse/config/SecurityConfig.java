@@ -64,8 +64,11 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "http://localhost:*",
+                "https://localhost:*",
                 "http://192.168.*:*",
+                "https://192.168.*:*",
                 "http://10.*:*",
+                "https://10.*:*",
                 "https://classpulse.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Request-ID"));
