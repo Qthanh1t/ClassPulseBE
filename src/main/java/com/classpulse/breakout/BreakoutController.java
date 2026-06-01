@@ -86,7 +86,10 @@ public class BreakoutController {
             @PathVariable UUID breakoutId,
             @PathVariable UUID roomId) {
         JoinRoomResponse response = breakoutService.joinRoom(sessionId, breakoutId, roomId);
-        broadcastService.broadcastToRoom(sessionId, roomId, "teacher_joined_room", Map.of(
+        // Session-wide so EVERY participant learns the teacher's current location:
+        // the joined room's students connect, while students in other rooms / the main
+        // room drop their teacher PC (otherwise they keep showing a frozen frame).
+        broadcastService.broadcastToSession(sessionId, "teacher_joined_room", Map.of(
                 "roomId", roomId,
                 "roomName", response.roomName()
         ));
@@ -101,7 +104,9 @@ public class BreakoutController {
             @PathVariable UUID breakoutId,
             @PathVariable UUID roomId) {
         breakoutService.leaveRoom(sessionId, breakoutId, roomId);
-        broadcastService.broadcastToRoom(sessionId, roomId, "teacher_left_room",
+        // Session-wide: the teacher is now back in the main room — main-room students
+        // reconnect, the room's students drop their teacher PC.
+        broadcastService.broadcastToSession(sessionId, "teacher_left_room",
                 Map.of("roomId", roomId));
         return ResponseEntity.noContent().build();
     }
