@@ -16,6 +16,8 @@ public class SessionDetailDto {
     private UUID id;
     private UUID classroomId;
     private String classroomName;
+    private UUID scheduleId;
+    private String scheduleTitle;
     private TeacherInfo teacher;
     private String status;
     private Instant startedAt;
@@ -42,6 +44,8 @@ public class SessionDetailDto {
                 .id(session.getId())
                 .classroomId(session.getClassroom().getId())
                 .classroomName(session.getClassroom().getName())
+                .scheduleId(session.getSchedule() != null ? session.getSchedule().getId() : null)
+                .scheduleTitle(session.getSchedule() != null ? session.getSchedule().getTitle() : null)
                 .teacher(TeacherInfo.from(session.getTeacher()))
                 .status(session.getStatus().name())
                 .startedAt(session.getStartedAt())
