@@ -33,4 +33,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     List<UUID> findActiveIds();
 
     long countByStatus(SessionStatus status);
+
+    long countByTeacher_Id(UUID teacherId);
 }

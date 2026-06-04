@@ -31,6 +31,8 @@ public interface ClassroomRepository extends JpaRepository<Classroom, UUID> {
 
     long countByIsArchivedTrue();
 
+    long countByTeacher_IdAndIsArchivedFalse(UUID teacherId);
+
     @Query(value = "SELECT c FROM Classroom c JOIN FETCH c.teacher ORDER BY c.createdAt DESC",
            countQuery = "SELECT COUNT(c) FROM Classroom c")
     Page<Classroom> findAllWithTeacher(Pageable pageable);

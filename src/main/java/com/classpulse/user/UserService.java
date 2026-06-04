@@ -28,6 +28,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MinioClient minioClient;
+    private final com.classpulse.classroom.ClassroomRepository classroomRepository;
+    private final com.classpulse.classroom.MembershipRepository membershipRepository;
+    private final com.classpulse.session.SessionRepository sessionRepository;
+    private final com.classpulse.session.SessionPresenceRepository sessionPresenceRepository;
+    private final com.classpulse.question.QuestionRepository questionRepository;
+    private final com.classpulse.question.StudentAnswerRepository studentAnswerRepository;
 
     @Value("${minio.endpoint}")
     private String minioEndpoint;
@@ -129,12 +135,22 @@ public class UserService {
     }
 
     private UserDto.Stats computeStats(User user) {
-        // Populated in M04 (classrooms), M09 (sessions), M10 (questions)
+        UUID uid = user.getId();
+        if (user.getRole() == Role.STUDENT) {
+            // Student-centric: lớp đã tham gia, buổi đã dự, câu đã trả lời, câu trả lời đúng
+            return UserDto.Stats.builder()
+                    .classroomsCount((int) membershipRepository.countActiveClassroomsByStudent(uid))
+                    .sessionsCount((int) sessionPresenceRepository.countDistinctSessionsByStudent(uid))
+                    .questionsAsked((int) studentAnswerRepository.countByStudent(uid))
+                    .studentsReached((int) studentAnswerRepository.countCorrectByStudent(uid))
+                    .build();
+        }
+        // Teacher / Admin-centric: lớp đang dạy, buổi đã mở, câu hỏi đã tạo, học sinh tiếp cận
         return UserDto.Stats.builder()
-                .classroomsCount(0)
-                .sessionsCount(0)
-                .questionsAsked(0)
-                .studentsReached(0)
+                .classroomsCount((int) classroomRepository.countByTeacher_IdAndIsArchivedFalse(uid))
+                .sessionsCount((int) sessionRepository.countByTeacher_Id(uid))
+                .questionsAsked((int) questionRepository.countByTeacherId(uid))
+                .studentsReached((int) membershipRepository.countDistinctStudentsByTeacher(uid))
                 .build();
     }
 }

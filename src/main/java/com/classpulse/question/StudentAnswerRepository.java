@@ -19,6 +19,12 @@ public interface StudentAnswerRepository extends JpaRepository<StudentAnswer, UU
 
     long countByQuestion_Id(UUID questionId);
 
+    @Query("SELECT COUNT(a) FROM StudentAnswer a WHERE a.student.id = :studentId")
+    long countByStudent(@Param("studentId") UUID studentId);
+
+    @Query("SELECT COUNT(a) FROM StudentAnswer a WHERE a.student.id = :studentId AND a.correct = true")
+    long countCorrectByStudent(@Param("studentId") UUID studentId);
+
     @Query("SELECT a FROM StudentAnswer a JOIN FETCH a.student JOIN FETCH a.question WHERE a.question.session.id = :sessionId")
     List<StudentAnswer> findBySessionId(@Param("sessionId") UUID sessionId);
 

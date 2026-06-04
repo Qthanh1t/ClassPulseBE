@@ -22,6 +22,9 @@ public interface SessionPresenceRepository extends JpaRepository<SessionPresence
 
     long countById_SessionId(UUID sessionId);
 
+    @Query("SELECT COUNT(DISTINCT p.session.id) FROM SessionPresence p WHERE p.student.id = :studentId")
+    long countDistinctSessionsByStudent(@Param("studentId") UUID studentId);
+
     @Modifying
     @Query("UPDATE SessionPresence p SET p.leftAt = :leftAt WHERE p.session.id = :sessionId AND p.student.id = :studentId")
     int updateLeftAt(@Param("sessionId") UUID sessionId, @Param("studentId") UUID studentId, @Param("leftAt") Instant leftAt);

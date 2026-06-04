@@ -20,6 +20,9 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     long countBySession_Id(UUID sessionId);
 
+    @Query("SELECT COUNT(q) FROM Question q WHERE q.session.teacher.id = :teacherId")
+    long countByTeacherId(@Param("teacherId") UUID teacherId);
+
     @Query("SELECT q FROM Question q LEFT JOIN FETCH q.options WHERE q.id = :id AND q.session.id = :sessionId")
     Optional<Question> findByIdWithOptions(@Param("id") UUID id, @Param("sessionId") UUID sessionId);
 
