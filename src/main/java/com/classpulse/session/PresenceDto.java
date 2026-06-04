@@ -16,6 +16,7 @@ public class PresenceDto {
     private UUID studentId;
     private String name;
     private String avatarColor;
+    private String avatarUrl;
     private Instant joinedAt;
     private Instant leftAt;
     @JsonProperty("isOnline")
@@ -26,6 +27,7 @@ public class PresenceDto {
                 .studentId(presence.getStudent().getId())
                 .name(presence.getStudent().getName())
                 .avatarColor(presence.getStudent().getAvatarColor())
+                .avatarUrl(presence.getStudent().getAvatarUrl())
                 .joinedAt(presence.getJoinedAt())
                 .leftAt(presence.getLeftAt())
                 .isOnline(isOnline)

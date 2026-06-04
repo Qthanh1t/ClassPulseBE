@@ -13,7 +13,7 @@ public record ChatMessageDto(
         UUID breakoutRoomId,
         Instant sentAt
 ) {
-    public record SenderInfo(UUID id, String name, String role, String avatarColor) {}
+    public record SenderInfo(UUID id, String name, String role, String avatarColor, String avatarUrl) {}
 
     public static ChatMessageDto from(ChatMessage msg) {
         var s = msg.getSender();
@@ -23,7 +23,8 @@ public record ChatMessageDto(
                         s.getId(),
                         s.getName(),
                         s.getRole().name().toLowerCase(),
-                        s.getAvatarColor()),
+                        s.getAvatarColor(),
+                        s.getAvatarUrl()),
                 msg.getContent(),
                 msg.getBreakoutRoom() != null ? msg.getBreakoutRoom().getId() : null,
                 msg.getSentAt());

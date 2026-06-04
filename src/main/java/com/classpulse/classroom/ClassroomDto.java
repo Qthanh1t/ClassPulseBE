@@ -31,12 +31,14 @@ public class ClassroomDto {
         private UUID id;
         private String name;
         private String avatarColor;
+        private String avatarUrl;
 
         public static TeacherInfo from(User teacher) {
             return TeacherInfo.builder()
                     .id(teacher.getId())
                     .name(teacher.getName())
                     .avatarColor(teacher.getAvatarColor())
+                    .avatarUrl(teacher.getAvatarUrl())
                     .build();
         }
     }

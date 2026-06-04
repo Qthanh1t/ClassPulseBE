@@ -227,7 +227,7 @@ public class QuestionService {
 
         List<User> silentUsers = userRepository.findAllById(silentIds);
         List<QuestionStatsDto.SilentStudent> silentStudents = silentUsers.stream()
-                .map(u -> new QuestionStatsDto.SilentStudent(u.getId(), u.getName(), u.getAvatarColor()))
+                .map(u -> new QuestionStatsDto.SilentStudent(u.getId(), u.getName(), u.getAvatarColor(), u.getAvatarUrl()))
                 .toList();
 
         return new QuestionStatsDto(questionId, totalStudents, answeredCount, skippedCount,

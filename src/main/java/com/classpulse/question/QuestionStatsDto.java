@@ -18,5 +18,5 @@ public record QuestionStatsDto(
 
     public record ConfidenceBreakdown(int high, int medium, int low, int none) {}
 
-    public record SilentStudent(UUID id, String name, String avatarColor) {}
+    public record SilentStudent(UUID id, String name, String avatarColor, String avatarUrl) {}
 }

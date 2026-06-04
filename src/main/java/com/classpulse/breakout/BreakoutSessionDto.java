@@ -26,7 +26,8 @@ public record BreakoutSessionDto(
     public record StudentInfo(
             UUID id,
             String name,
-            String avatarColor
+            String avatarColor,
+            String avatarUrl
     ) {}
 
     public static BreakoutSessionDto from(BreakoutSession bs, List<BreakoutRoom> rooms) {
@@ -40,7 +41,8 @@ public record BreakoutSessionDto(
                                 .map(a -> new StudentInfo(
                                         a.getStudent().getId(),
                                         a.getStudent().getName(),
-                                        a.getStudent().getAvatarColor()))
+                                        a.getStudent().getAvatarColor(),
+                                        a.getStudent().getAvatarUrl()))
                                 .toList()))
                 .toList();
 

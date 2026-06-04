@@ -43,6 +43,9 @@ public class JwtHandshakeHandler extends DefaultHandshakeHandler {
                     if (user.getAvatarColor() != null) {
                         attributes.put("userAvatarColor", user.getAvatarColor());
                     }
+                    if (user.getAvatarUrl() != null) {
+                        attributes.put("userAvatarUrl", user.getAvatarUrl());
+                    }
                     if (data.sessionId() != null) {
                         attributes.put("sessionId", data.sessionId().toString());
                     }

@@ -74,6 +74,7 @@ public class DashboardService {
                         s.getId().getStudentId(),
                         s.getStudent().getName(),
                         s.getStudent().getAvatarColor(),
+                        s.getStudent().getAvatarUrl(),
                         s.getAnsweredCount(),
                         s.getCorrectCount(),
                         s.getSkippedCount(),

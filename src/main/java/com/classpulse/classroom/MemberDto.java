@@ -14,6 +14,7 @@ public class MemberDto {
     private UUID id;
     private String name;
     private String avatarColor;
+    private String avatarUrl;
     private String role;
     private Instant joinedAt;
 
@@ -23,6 +24,7 @@ public class MemberDto {
                 .id(student.getId())
                 .name(student.getName())
                 .avatarColor(student.getAvatarColor())
+                .avatarUrl(student.getAvatarUrl())
                 .role(student.getRole().name().toLowerCase())
                 .joinedAt(membership.getJoinedAt())
                 .build();

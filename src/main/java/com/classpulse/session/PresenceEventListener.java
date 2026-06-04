@@ -37,6 +37,9 @@ public class PresenceEventListener {
         if (attrs.avatarColor() != null) {
             payload.put("avatarColor", attrs.avatarColor());
         }
+        if (attrs.avatarUrl() != null) {
+            payload.put("avatarUrl", attrs.avatarUrl());
+        }
         broadcastService.broadcastToSession(attrs.sessionId(), "student_presence", payload);
 
         log.info("Student {} joined session {} via WS", attrs.userId(), attrs.sessionId());
@@ -68,9 +71,10 @@ public class PresenceEventListener {
         String role = (String) sessionAttrs.get("userRole");
         String name = (String) sessionAttrs.get("userName");
         String avatarColor = (String) sessionAttrs.get("userAvatarColor");
+        String avatarUrl = (String) sessionAttrs.get("userAvatarUrl");
 
         if (userId == null || sessionId == null || role == null) return null;
-        return new Attrs(userId, sessionId, role, name != null ? name : "Học sinh", avatarColor);
+        return new Attrs(userId, sessionId, role, name != null ? name : "Học sinh", avatarColor, avatarUrl);
     }
 
     private UUID parseUuid(Object val) {
@@ -86,5 +90,5 @@ public class PresenceEventListener {
         return "session:" + sessionId + ":presence";
     }
 
-    private record Attrs(UUID userId, UUID sessionId, String role, String name, String avatarColor) {}
+    private record Attrs(UUID userId, UUID sessionId, String role, String name, String avatarColor, String avatarUrl) {}
 }

@@ -28,6 +28,7 @@ public class PostDto {
         private String name;
         private String role;
         private String avatarColor;
+        private String avatarUrl;
 
         public static AuthorInfo from(User user) {
             return AuthorInfo.builder()
@@ -35,6 +36,7 @@ public class PostDto {
                     .name(user.getName())
                     .role(user.getRole().name().toLowerCase())
                     .avatarColor(user.getAvatarColor())
+                    .avatarUrl(user.getAvatarUrl())
                     .build();
         }
     }

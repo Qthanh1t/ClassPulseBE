@@ -54,6 +54,7 @@ public class DashboardResponse {
             UUID studentId,
             String name,
             String avatarColor,
+            String avatarUrl,
             short answeredCount,
             short correctCount,
             short skippedCount,

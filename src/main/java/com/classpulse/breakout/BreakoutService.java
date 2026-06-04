@@ -80,7 +80,7 @@ public class BreakoutService {
                             .build());
                     User u = userMap.get(studentId);
                     if (u != null) {
-                        students.add(new BreakoutSessionDto.StudentInfo(u.getId(), u.getName(), u.getAvatarColor()));
+                        students.add(new BreakoutSessionDto.StudentInfo(u.getId(), u.getName(), u.getAvatarColor(), u.getAvatarUrl()));
                     }
                 }
             }

@@ -186,6 +186,8 @@ public class SessionService {
                 session.getClassroom().getName(),
                 session.getTeacher().getName(),
                 session.getTeacher().getId(),
+                session.getTeacher().getAvatarColor(),
+                session.getTeacher().getAvatarUrl(),
                 wsTicket);
     }
 
