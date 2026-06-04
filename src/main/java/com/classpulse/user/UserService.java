@@ -35,9 +35,6 @@ public class UserService {
     private final com.classpulse.question.QuestionRepository questionRepository;
     private final com.classpulse.question.StudentAnswerRepository studentAnswerRepository;
 
-    @Value("${minio.endpoint}")
-    private String minioEndpoint;
-
     @Value("${minio.bucket}")
     private String minioBucket;
 
@@ -81,7 +78,10 @@ public class UserService {
             throw new BusinessException("AVATAR_UPLOAD_FAILED", "Failed to upload avatar");
         }
 
-        String avatarUrl = minioEndpoint + "/" + minioBucket + "/" + objectKey;
+        // Relative path served via the frontend's /storage proxy → MinIO.
+        // Avoids baking an absolute localhost:9000 URL into the data, which
+        // breaks when the page is opened from another device (e.g. a phone on the LAN).
+        String avatarUrl = "/storage/" + minioBucket + "/" + objectKey;
         user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
         log.info("Uploaded avatar for user: {}", userId);

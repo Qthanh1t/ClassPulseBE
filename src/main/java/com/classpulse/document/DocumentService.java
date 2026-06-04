@@ -40,9 +40,6 @@ public class DocumentService {
     private final UserRepository userRepository;
     private final MinioClient minioClient;
 
-    @Value("${minio.endpoint}")
-    private String minioEndpoint;
-
     @Value("${minio.bucket}")
     private String minioBucket;
 
@@ -163,6 +160,8 @@ public class DocumentService {
     }
 
     private String minioBase() {
-        return minioEndpoint + "/" + minioBucket;
+        // Relative /storage prefix served via the frontend proxy → MinIO.
+        // Keeps file URLs device-agnostic (no baked-in localhost:9000).
+        return "/storage/" + minioBucket;
     }
 }
