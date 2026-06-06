@@ -17,8 +17,8 @@ public class UploadPresignRequest {
     private List<FileInfo> files;
 
     @NotBlank
-    @Pattern(regexp = "post_attachment|classroom_document|avatar",
-             message = "purpose must be post_attachment, classroom_document, or avatar")
+    @Pattern(regexp = "post_attachment|classroom_document|avatar|question_attachment|answer_attachment",
+             message = "purpose must be post_attachment, classroom_document, avatar, question_attachment, or answer_attachment")
     private String purpose;
 
     @Getter

@@ -57,6 +57,9 @@ public class UploadService {
                         .fileName(fileInfo.getFileName())
                         .fileKey(objectKey)
                         .uploadUrl(url)
+                        // Relative /storage prefix served via the frontend proxy → MinIO.
+                        // Keeps embedded URLs device-agnostic (no baked-in localhost:9000).
+                        .url("/storage/" + minioBucket + "/" + objectKey)
                         .expiresAt(expiresAt)
                         .build());
             } catch (Exception e) {
