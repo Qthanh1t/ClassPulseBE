@@ -22,6 +22,7 @@ public class ClassroomDto {
     private TeacherInfo teacher;
     private int studentCount;
     private NextSchedule nextSchedule;
+    private UUID activeSessionId;
     private boolean isArchived;
     private Instant createdAt;
 
@@ -64,10 +65,14 @@ public class ClassroomDto {
     }
 
     public static ClassroomDto from(Classroom classroom, int studentCount) {
-        return from(classroom, studentCount, null);
+        return from(classroom, studentCount, null, null);
     }
 
     public static ClassroomDto from(Classroom classroom, int studentCount, Schedule nextSchedule) {
+        return from(classroom, studentCount, nextSchedule, null);
+    }
+
+    public static ClassroomDto from(Classroom classroom, int studentCount, Schedule nextSchedule, UUID activeSessionId) {
         return ClassroomDto.builder()
                 .id(classroom.getId())
                 .name(classroom.getName())
@@ -77,6 +82,7 @@ public class ClassroomDto {
                 .teacher(TeacherInfo.from(classroom.getTeacher()))
                 .studentCount(studentCount)
                 .nextSchedule(nextSchedule != null ? NextSchedule.from(nextSchedule) : null)
+                .activeSessionId(activeSessionId)
                 .isArchived(classroom.isArchived())
                 .createdAt(classroom.getCreatedAt())
                 .build();

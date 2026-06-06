@@ -6,6 +6,7 @@ import com.classpulse.common.exception.NotFoundException;
 import com.classpulse.common.util.JoinCodeGenerator;
 import com.classpulse.schedule.Schedule;
 import com.classpulse.schedule.ScheduleRepository;
+import com.classpulse.session.SessionRepository;
 import com.classpulse.user.Role;
 import com.classpulse.user.User;
 import com.classpulse.user.UserRepository;
@@ -16,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,6 +30,7 @@ public class ClassroomService {
     private final MembershipRepository membershipRepository;
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
+    private final SessionRepository sessionRepository;
 
     // T037 — create
     @Transactional
@@ -54,13 +58,23 @@ public class ClassroomService {
                 ? classroomRepository.findByTeacher_IdAndIsArchivedFalse(userId)
                 : classroomRepository.findByStudentId(userId);
 
+        // Batch lookup of active sessions for all classrooms at once (avoids N+1)
+        Map<UUID, UUID> activeSessions = classrooms.isEmpty()
+                ? Map.of()
+                : sessionRepository.findActiveByClassroomIds(classrooms.stream().map(Classroom::getId).toList())
+                        .stream()
+                        .collect(Collectors.toMap(
+                                SessionRepository.ActiveSessionRow::getClassroomId,
+                                SessionRepository.ActiveSessionRow::getSessionId,
+                                (a, b) -> a));
+
         LocalDate today = LocalDate.now();
         return classrooms.stream()
                 .map(c -> {
                     Schedule next = scheduleRepository
                             .findFirstByClassroom_IdAndScheduledDateGreaterThanEqualOrderByScheduledDateAscStartTimeAsc(c.getId(), today)
                             .orElse(null);
-                    return ClassroomDto.from(c, studentCount(c.getId()), next);
+                    return ClassroomDto.from(c, studentCount(c.getId()), next, activeSessions.get(c.getId()));
                 })
                 .toList();
     }
@@ -72,7 +86,10 @@ public class ClassroomService {
         Schedule next = scheduleRepository
                 .findFirstByClassroom_IdAndScheduledDateGreaterThanEqualOrderByScheduledDateAscStartTimeAsc(classroomId, LocalDate.now())
                 .orElse(null);
-        return ClassroomDto.from(classroom, studentCount(classroomId), next);
+        UUID activeSessionId = sessionRepository.findActiveByClassroomId(classroomId)
+                .map(com.classpulse.session.Session::getId)
+                .orElse(null);
+        return ClassroomDto.from(classroom, studentCount(classroomId), next, activeSessionId);
     }
 
     // T037 — update

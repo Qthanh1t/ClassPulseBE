@@ -19,6 +19,16 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     @Query("SELECT s FROM Session s WHERE s.classroom.id = :classroomId AND s.status = com.classpulse.session.SessionStatus.active")
     Optional<Session> findActiveByClassroomId(@Param("classroomId") UUID classroomId);
 
+    // Batch lookup of active sessions for a set of classrooms (avoids N+1 when listing classrooms)
+    @Query("SELECT s.classroom.id AS classroomId, s.id AS sessionId FROM Session s " +
+           "WHERE s.status = com.classpulse.session.SessionStatus.active AND s.classroom.id IN :classroomIds")
+    List<ActiveSessionRow> findActiveByClassroomIds(@Param("classroomIds") List<UUID> classroomIds);
+
+    interface ActiveSessionRow {
+        UUID getClassroomId();
+        UUID getSessionId();
+    }
+
     @Query("SELECT s.teacher.id FROM Session s WHERE s.id = :sessionId")
     Optional<UUID> findTeacherIdById(@Param("sessionId") UUID sessionId);
 
