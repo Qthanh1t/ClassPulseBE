@@ -4,17 +4,21 @@ import com.classpulse.common.exception.BusinessException;
 import com.classpulse.common.exception.NotFoundException;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -88,10 +92,29 @@ public class UserService {
         return avatarUrl;
     }
 
-    // admin: list all users with optional role + search filter
+    // admin: list all users with optional role + search filter.
+    // Built as a Specification so only the supplied filters become SQL predicates —
+    // this avoids the "(:param IS NULL OR ...)" pattern, which binds an untyped NULL
+    // for the converter-mapped enum and makes PostgreSQL fail with
+    // "could not determine data type of parameter".
     public Page<UserDto> listUsers(int page, int limit, Role role, String search) {
         PageRequest pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
-        return userRepository.findFiltered(role, search, pageable).map(UserDto::from);
+
+        Specification<User> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (role != null) {
+                predicates.add(cb.equal(root.get("role"), role));
+            }
+            if (search != null && !search.isBlank()) {
+                String pattern = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("name")), pattern),
+                        cb.like(cb.lower(root.get("email")), pattern)));
+            }
+            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return userRepository.findAll(spec, pageable).map(UserDto::from);
     }
 
     // admin: update role / ban-unban
