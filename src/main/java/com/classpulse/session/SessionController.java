@@ -36,6 +36,9 @@ public class SessionController {
             @RequestBody(required = false) CreateSessionRequest request) {
         SessionDto dto = sessionService.start(classroomId, principal.userId(),
                 request != null ? request : new CreateSessionRequest());
+        // Báo cho danh sách lớp (mọi thành viên đang xem) rằng lớp đã vào học → LIVE badge realtime, không cần poll
+        broadcastService.broadcastToClassroom(classroomId, "session_started",
+                Map.of("classroomId", classroomId, "sessionId", dto.getId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(dto));
     }
 
@@ -64,6 +67,9 @@ public class SessionController {
         summaryComputeJob.computeAsync(sessionId);
         broadcastService.broadcastToSession(sessionId, "session_ended",
                 Map.of("sessionId", sessionId, "endedAt", response.endedAt()));
+        // Báo cho danh sách lớp rằng lớp đã kết thúc → tắt LIVE badge realtime
+        broadcastService.broadcastToClassroom(response.classroomId(), "session_ended",
+                Map.of("classroomId", response.classroomId(), "sessionId", sessionId));
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 

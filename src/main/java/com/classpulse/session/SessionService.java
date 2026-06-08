@@ -156,7 +156,7 @@ public class SessionService {
         }
 
         // Async summary compute will be triggered in M14 (T092)
-        return new SessionEndResponse(sessionId, now, durationSeconds, 0, studentCount);
+        return new SessionEndResponse(sessionId, session.getClassroom().getId(), now, durationSeconds, 0, studentCount);
     }
 
     // T060 — join

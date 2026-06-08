@@ -31,6 +31,17 @@ public class SessionBroadcastService {
         log.debug("Sent type={} to user={}", type, userId);
     }
 
+    /**
+     * Broadcast to a classroom channel (ngoài phiên học): /topic/classroom/{classroomId}.
+     * Dùng để báo `session_started` / `session_ended` cho danh sách lớp, thay cho việc client poll REST.
+     */
+    public void broadcastToClassroom(UUID classroomId, String type, Object payload) {
+        messagingTemplate.convertAndSend(
+                "/topic/classroom/" + classroomId,
+                Map.of("type", type, "payload", payload));
+        log.debug("Broadcast type={} to classroom={}", type, classroomId);
+    }
+
     /** Broadcast to a specific breakout room: /topic/session/{sessionId}/room/{roomId} */
     public void broadcastToRoom(UUID sessionId, UUID roomId, String type, Object payload) {
         messagingTemplate.convertAndSend(
