@@ -37,6 +37,10 @@ public class BreakoutSession {
     @Column(name = "ended_at")
     private Instant endedAt;
 
+    // Room the teacher is currently visiting (null = main room) — survives page reloads
+    @Column(name = "teacher_room_id")
+    private UUID teacherRoomId;
+
     @OneToMany(mappedBy = "breakoutSession", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("roomOrder ASC")
     @Builder.Default

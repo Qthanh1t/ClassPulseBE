@@ -13,6 +13,7 @@ public record BreakoutSessionDto(
         UUID breakoutSessionId,
         Instant startedAt,
         Instant endedAt,
+        UUID teacherRoomId,
         List<RoomDto> rooms
 ) {
     public record RoomDto(
@@ -50,6 +51,7 @@ public record BreakoutSessionDto(
                 .breakoutSessionId(bs.getId())
                 .startedAt(bs.getStartedAt())
                 .endedAt(bs.getEndedAt())
+                .teacherRoomId(bs.getTeacherRoomId())
                 .rooms(roomDtos)
                 .build();
     }

@@ -151,7 +151,7 @@ public class BreakoutService {
     }
 
     // T078 — teacher join room
-    @Transactional(readOnly = true)
+    @Transactional
     public JoinRoomResponse joinRoom(UUID sessionId, UUID breakoutId, UUID roomId) {
         BreakoutSession breakoutSession = breakoutSessionRepository.findByIdAndSession_Id(breakoutId, sessionId)
                 .orElseThrow(() -> new NotFoundException("Breakout session not found"));
@@ -163,13 +163,17 @@ public class BreakoutService {
         BreakoutRoom room = breakoutRoomRepository.findByIdAndBreakoutSession_Id(roomId, breakoutId)
                 .orElseThrow(() -> new NotFoundException("Breakout room not found"));
 
+        // Persist the teacher's location so the FE can restore it after a page reload
+        breakoutSession.setTeacherRoomId(roomId);
+        breakoutSessionRepository.save(breakoutSession);
+
         Instant joinedAt = Instant.now();
         log.info("Teacher joined breakout room {} in breakout {} of session {}", roomId, breakoutId, sessionId);
         return new JoinRoomResponse(roomId, room.getName(), joinedAt);
     }
 
     // T078 — teacher leave room
-    @Transactional(readOnly = true)
+    @Transactional
     public void leaveRoom(UUID sessionId, UUID breakoutId, UUID roomId) {
         BreakoutSession breakoutSession = breakoutSessionRepository.findByIdAndSession_Id(breakoutId, sessionId)
                 .orElseThrow(() -> new NotFoundException("Breakout session not found"));
@@ -180,6 +184,9 @@ public class BreakoutService {
 
         breakoutRoomRepository.findByIdAndBreakoutSession_Id(roomId, breakoutId)
                 .orElseThrow(() -> new NotFoundException("Breakout room not found"));
+
+        breakoutSession.setTeacherRoomId(null);
+        breakoutSessionRepository.save(breakoutSession);
 
         log.info("Teacher left breakout room {} in breakout {} of session {}", roomId, breakoutId, sessionId);
     }
