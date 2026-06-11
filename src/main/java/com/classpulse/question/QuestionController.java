@@ -60,6 +60,8 @@ public class QuestionController {
         if (resp.endsAt() != null) {
             payload.put("endsAt", resp.endsAt());
         }
+        // Server timestamp so clients can correct local clock skew when counting down to endsAt
+        payload.put("serverNow", java.time.Instant.now());
         broadcastService.broadcastToSession(sessionId, "question_started", payload);
 
         return ResponseEntity.ok(ApiResponse.ok(resp));
