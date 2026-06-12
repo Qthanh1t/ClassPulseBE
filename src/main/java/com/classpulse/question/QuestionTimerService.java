@@ -36,10 +36,10 @@ public class QuestionTimerService {
     public void startTimer(UUID questionId, int timerSeconds, UUID sessionId) {
         ScheduledFuture<?> future = scheduler.schedule(
                 () -> {
-                    autoEndQuestion(questionId, sessionId);
+                    List<UUID> correctIds = autoEndQuestion(questionId, sessionId);
                     activeTimers.remove(questionId);
                     broadcastService.broadcastToSession(sessionId, "question_ended",
-                            Map.of("questionId", questionId));
+                            Map.of("questionId", questionId, "correctOptionIds", correctIds));
                 },
                 timerSeconds, TimeUnit.SECONDS);
         activeTimers.put(questionId, future);
@@ -54,20 +54,25 @@ public class QuestionTimerService {
         }
     }
 
-    // Called by timer thread — uses TransactionTemplate because @Transactional proxy is bypassed
-    private void autoEndQuestion(UUID questionId, UUID sessionId) {
-        transactionTemplate.execute(tx -> {
-            questionRepository.findById(questionId).ifPresent(q -> {
+    // Called by timer thread — uses TransactionTemplate because @Transactional proxy is bypassed.
+    // Trả về correctOptionIds (đọc trong transaction vì options lazy) để gửi kèm question_ended.
+    private List<UUID> autoEndQuestion(UUID questionId, UUID sessionId) {
+        List<UUID> correctIds = transactionTemplate.execute(tx ->
+            questionRepository.findById(questionId).map(q -> {
                 if (q.getStatus() == QuestionStatus.running) {
                     q.setStatus(QuestionStatus.ended);
                     q.setEndedAt(Instant.now());
                     questionRepository.save(q);
                 }
-            });
-            return null;
-        });
+                return q.getOptions().stream()
+                        .filter(QuestionOption::isCorrect)
+                        .map(QuestionOption::getId)
+                        .toList();
+            }).orElse(List.of())
+        );
         redisTemplate.delete("session:" + sessionId + ":active_question");
         log.info("Auto-ended question {} (timer expired)", questionId);
+        return correctIds == null ? List.of() : correctIds;
     }
 
     // R02 mitigation — recover running questions after server restart
@@ -93,10 +98,10 @@ public class QuestionTimerService {
                 long remainingMs = Duration.between(now, q.getEndsAt()).toMillis();
                 ScheduledFuture<?> future = scheduler.schedule(
                         () -> {
-                            autoEndQuestion(q.getId(), sessionId);
+                            List<UUID> correctIds = autoEndQuestion(q.getId(), sessionId);
                             activeTimers.remove(q.getId());
                             broadcastService.broadcastToSession(sessionId, "question_ended",
-                                    Map.of("questionId", q.getId()));
+                                    Map.of("questionId", q.getId(), "correctOptionIds", correctIds));
                         },
                         remainingMs, TimeUnit.MILLISECONDS);
                 activeTimers.put(q.getId(), future);

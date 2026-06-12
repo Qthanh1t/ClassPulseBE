@@ -2,6 +2,7 @@ package com.classpulse.question;
 
 import com.classpulse.common.response.ApiResponse;
 import com.classpulse.session.SessionBroadcastService;
+import com.classpulse.session.SessionSecurityBean;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -24,11 +26,18 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final SessionBroadcastService broadcastService;
+    private final SessionSecurityBean sessionSecurity;
 
     @Operation(summary = "List questions in session [AUTH]")
     @GetMapping("/questions")
-    public ResponseEntity<ApiResponse<List<QuestionDto>>> list(@PathVariable UUID sessionId) {
-        return ResponseEntity.ok(ApiResponse.ok(questionService.list(sessionId)));
+    public ResponseEntity<ApiResponse<List<QuestionDto>>> list(
+            @PathVariable UUID sessionId, Authentication authentication) {
+        List<QuestionDto> questions = questionService.list(sessionId);
+        // Học sinh không được thấy isCorrect (chống lộ đáp án khi câu hỏi đang chạy)
+        if (!sessionSecurity.isOwner(sessionId, authentication)) {
+            questions = questions.stream().map(QuestionDto::sanitized).toList();
+        }
+        return ResponseEntity.ok(ApiResponse.ok(questions));
     }
 
     @Operation(summary = "Create question [OWNER]")
@@ -55,7 +64,9 @@ public class QuestionController {
         payload.put("type", question.type());
         payload.put("content", question.content());
         if (question.options() != null && !question.options().isEmpty()) {
-            payload.put("options", question.options());
+            // Broadcast tới cả lớp (topic chung) — phải ẩn isCorrect, đáp án đúng chỉ
+            // được tiết lộ trong question_ended (correctOptionIds)
+            payload.put("options", question.options().stream().map(OptionDto::withoutCorrect).toList());
         }
         if (resp.endsAt() != null) {
             payload.put("endsAt", resp.endsAt());
@@ -74,8 +85,10 @@ public class QuestionController {
             @PathVariable UUID sessionId,
             @PathVariable UUID questionId) {
         QuestionEndResponse resp = questionService.end(sessionId, questionId);
+        // Kèm đáp án đúng để học sinh xem lại kết quả sau khi câu hỏi kết thúc
+        List<UUID> correctOptionIds = questionService.getCorrectOptionIds(sessionId, questionId);
         broadcastService.broadcastToSession(sessionId, "question_ended",
-                Map.of("questionId", questionId));
+                Map.of("questionId", questionId, "correctOptionIds", correctOptionIds));
         return ResponseEntity.ok(ApiResponse.ok(resp));
     }
 

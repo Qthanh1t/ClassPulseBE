@@ -22,6 +22,16 @@ public record QuestionDto(
         Instant createdAt,
         List<OptionDto> options
 ) {
+    // Bản dành cho học sinh — ẩn isCorrect của options (chống lộ đáp án khi câu hỏi đang chạy)
+    public QuestionDto sanitized() {
+        return QuestionDto.builder()
+                .id(id).questionOrder(questionOrder).type(type).content(content)
+                .timerSeconds(timerSeconds).status(status)
+                .startedAt(startedAt).endsAt(endsAt).endedAt(endedAt).createdAt(createdAt)
+                .options(options == null ? null : options.stream().map(OptionDto::withoutCorrect).toList())
+                .build();
+    }
+
     public static QuestionDto from(Question question) {
         return QuestionDto.builder()
                 .id(question.getId())

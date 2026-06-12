@@ -47,6 +47,17 @@ public class QuestionService {
                 .orElseThrow(() -> new NotFoundException("Question not found"));
     }
 
+    // Đáp án đúng — gửi kèm trong broadcast question_ended để học sinh xem lại kết quả
+    @Transactional(readOnly = true)
+    public List<UUID> getCorrectOptionIds(UUID sessionId, UUID questionId) {
+        return questionRepository.findByIdWithOptions(questionId, sessionId)
+                .map(q -> q.getOptions().stream()
+                        .filter(QuestionOption::isCorrect)
+                        .map(QuestionOption::getId)
+                        .toList())
+                .orElse(List.of());
+    }
+
     // T068 — list
     @Transactional(readOnly = true)
     public List<QuestionDto> list(UUID sessionId) {
