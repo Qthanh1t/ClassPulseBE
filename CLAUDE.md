@@ -79,6 +79,8 @@ Package convention: `com.classpulse.<module>.<layer>` (feature-first).
 - **Precomputed summaries** — `session_student_summaries` tính async sau session ended, dashboard chỉ SELECT.
 - **STOMP destinations**: `/topic/session/{id}` (broadcast), `/topic/session/{id}/room/{roomId}` (breakout), `/user/queue/private` (unicast).
 - **TURN server** — Coturn `lt-cred-mech`, credentials `classpulse`/`secret123`. Production: đổi sang `use-auth-secret` + TLS.
+- **⚠️ LiveKit SFU migration (ĐANG TRIỂN KHAI — nhánh `feat/livekit-sfu`)** — thay media plane mesh P2P → LiveKit SFU để scale lớp 30 HS. Service `livekit` trong `docker-compose.yml` + `livekit.yaml` (key `classpulse`, secret >= 32 ký tự khớp `LIVEKIT_API_SECRET`). `session/LiveKitTokenService` ký JWT HS256 bằng JJWT (không thêm dep), `identity=userId`, video grant; endpoint `POST /sessions/{id}/livekit-token` (`@sessionSecurity.isParticipant`, chặn mint token cho room session khác — chỉ `session-{id}` hoặc `session-{id}-room-*`). STOMP nghiệp vụ + WebRTC signaling cũ (`webrtc/*`) GIỮ NGUYÊN tới Phase 5 (fallback). Trạng thái: Phase 0–4 code xong (infra+token BE; FE hook + rewire 2 session page + breakout/spotlight), chờ test runtime; Phase 5 (xoá relay `webrtc/*` ở BE + mesh FE + cập nhật doc) chưa.
+  - **⚠️ GOTCHA test 2 thiết bị trên Windows**: LiveKit chạy trong **Docker Desktop/WSL2 → media KHÔNG qua được** (chỉ advertise IP nội bộ WSL `172.29.x`/loopback, thiết bị LAN khác không route tới → ICE pair `(not set)`, đen hình im tiếng dù signaling OK). **Fix**: chạy `livekit-server.exe` **native** trên Windows (`docker compose stop livekit` rồi `.\livekit-server.exe --config livekit.yaml --node-ip <IP_LAN>`), set `LIVEKIT_URL=ws://<IP_LAN>:7880` + `LIVEKIT_NODE_IP=<IP_LAN>` trong `.env`, mở firewall TCP 7880/7881 + UDP 7882, thiết bị B truy cập FE qua `http://<IP_LAN>:5173`. Postgres/redis vẫn để Docker.
 
 ## API Conventions
 
@@ -121,11 +123,15 @@ Base URL: `/api/v1`. Auth levels: `[PUBLIC]` `[AUTH]` `[TEACHER]` `[STUDENT]` `[
 
 ```bash
 cp .env.example .env          # điền JWT_SECRET (chỉ lần đầu)
-docker-compose up -d          # start infrastructure
-./gradlew bootRun             # run app (auto-load .env, SPRING_PROFILES_ACTIVE=dev)
+docker-compose up -d          # start infra (postgres/redis/minio/coturn) — KHÔNG có livekit (opt-in profile)
+.\start-livekit.ps1           # LiveKit SFU native (Windows) — đọc node-ip từ .env; KHÔNG chạy trong Docker (WSL NAT chặn media 2 thiết bị)
+./gradlew bootRun             # run app (auto-load .env — đổi .env phải restart)
 ./gradlew test                # Testcontainers tự spin up DB + Redis
 ./gradlew bootJar             # build jar
 ```
+
+**LiveKit (video SFU)**: tải `livekit-server.exe` (releases) vào thư mục gốc, chạy `.\start-livekit.ps1`.
+`LIVEKIT_NODE_IP` + `LIVEKIT_URL` trong `.env` phải = **IP LAN host** khi test 2 thiết bị (`ipconfig`); thiết bị khác vào FE qua `http://<IP_LAN>:5173`. Mở firewall TCP 7880/7881 + UDP 7882. Bản Docker chỉ dùng khi chạy 1 máy/Linux: `docker compose --profile docker-livekit up -d livekit`.
 
 ## Implementation Status
 

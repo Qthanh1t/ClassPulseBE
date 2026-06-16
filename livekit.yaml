@@ -1,0 +1,16 @@
+# =============================================================================
+# LiveKit SFU — cấu hình DEV cho ClassPulse.
+# KHÔNG dùng secret này ở production. Docs: https://docs.livekit.io/home/self-hosting/
+# =============================================================================
+port: 7880                 # HTTP / WebSocket signaling (browser kết nối tới cổng này)
+log_level: info
+
+rtc:
+  tcp_port: 7881           # ICE/TCP fallback khi UDP bị chặn
+  udp_port: 7882           # single-port UDP mux — chỉ cần publish 1 cổng UDP, thân thiện Docker
+  use_external_ip: false   # dev 1 máy: dùng node_ip truyền qua --node-ip ở docker-compose
+
+keys:
+  # <api-key>: <api-secret> — PHẢI khớp LIVEKIT_API_KEY / LIVEKIT_API_SECRET trong backend .env
+  # Secret >= 32 ký tự (yêu cầu HS256 khi backend ký token bằng JJWT).
+  classpulse: cxOBjK3LjdCaskIz3C9vP3UR2G2nbyXGX7kuAdrTYoI=
