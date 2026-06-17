@@ -883,6 +883,31 @@ Danh sách HS đang online trong phòng.
 }
 ```
 
+### POST `/api/v1/sessions/:sessionId/livekit-token` `[AUTH]`
+
+Cấp **LiveKit access token** để client kết nối tới SFU. Backend chỉ ký token (không nằm trên đường media). `identity = userId` để map participant ↔ presence STOMP.
+
+**Request body (tùy chọn):**
+```json
+{ "roomName": "session-<sessionId>-room-<breakoutRoomId>" }
+```
+- Bỏ trống `roomName` → mặc định phòng chính `session-<sessionId>`.
+- Breakout → truyền room name của phòng nhóm.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "token": "<livekit-jwt>",
+    "url": "ws://<livekit-host>:7880",
+    "identity": "<userId>"
+  }
+}
+```
+
+> SDP/ICE signaling do LiveKit SDK ↔ server tự xử lý — **không** đi qua Spring/STOMP.
+
 ---
 
 ## Module 8: Questions (Câu hỏi)
@@ -1448,7 +1473,8 @@ Client dùng `uploadUrl` để PUT file trực tiếp. Sau khi upload xong, gọ
 
 | Event | Khi nào | Payload |
 |-------|---------|---------|
-| `session_ended` | GV kết thúc buổi học | `{ sessionId, endedAt }` |
+| `session_started` | GV bắt đầu buổi học | `{ sessionId, classroomName, teacherName }` |
+| `session_ended` | GV kết thúc buổi học | `{ sessionId }` |
 | `question_started` | GV phát câu hỏi | `{ questionId, type, content, options (nếu MCQ), endsAt }` |
 | `question_ended` | Câu hỏi kết thúc | `{ questionId, stats: { correct, wrong, skipped, confidenceBreakdown } }` |
 | `answer_aggregate` | Có HS vừa nộp | `{ questionId, answeredCount, totalCount }` — chỉ gửi đến GV |
@@ -1462,20 +1488,17 @@ Client dùng `uploadUrl` để PUT file trực tiếp. Sau khi upload xong, gọ
 | `raise_hand_changed` | HS giơ/hạ tay | `{ studentId, raised: boolean }` |
 | `chat_message` | Tin nhắn chat | `{ id, senderId, senderName, senderRole, avatarColor, content, breakoutRoomId, sentAt }` |
 | `silent_alert` | HS không trả lời | `{ silentStudentIds: ["uuid"] }` — gửi đến GV sau 30s |
-| `camera_state_changed` | Ai đó bật/tắt camera | `{ fromId, isCameraOff: boolean }` |
 
 ### Client → Server Events (gửi qua WebSocket)
 
-| Event | Ai gửi | Destination | Payload |
-|-------|--------|-------------|---------|
-| `raise_hand` | Student | `/app/session/{id}/raise-hand` | `{ raised: boolean }` |
-| `camera_state` | Teacher/Student | `/app/session/{id}/camera-state` | `{ isCameraOff: boolean }` |
-| `chat_send` | Teacher/Student | `/app/session/{id}/chat` | `{ content, breakoutRoomId: null \| "uuid" }` |
-| `focus_student` | Teacher | `/app/session/{id}/focus` | `{ studentId: "uuid" \| null }` |
-| `webrtc_offer` | Cả hai | `/app/webrtc/offer` | `{ targetId, sdp }` |
-| `webrtc_answer` | Cả hai | `/app/webrtc/answer` | `{ targetId, sdp }` |
-| `webrtc_ice_candidate` | Cả hai | `/app/webrtc/ice-candidate` | `{ targetId, candidate }` |
-| `heartbeat` | Cả hai | `/app/session/{id}/heartbeat` | `{}` — giữ connection alive mỗi 25s |
+| Event | Ai gửi | Payload |
+|-------|--------|---------|
+| `raise_hand` | Student | `{ raised: boolean }` |
+| `chat_send` | Teacher/Student | `{ content, breakoutRoomId: null \| "uuid" }` |
+| `focus_student` | Teacher | `{ studentId: "uuid" \| null }` |
+| `heartbeat` | Cả hai | `{}` — giữ connection alive mỗi 25s |
+
+> **Video/audio không dùng STOMP:** media chạy trên **LiveKit SFU**, SDP/ICE signaling do LiveKit SDK ↔ server tự xử lý. Client lấy token qua REST `POST /api/v1/sessions/{sessionId}/livekit-token` (Module 7).
 
 ---
 
