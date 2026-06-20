@@ -1,0 +1,17 @@
+# =============================================================================
+# LiveKit SFU — PRODUCTION config for ClassPulse
+# Signaling (7880) is proxied by Caddy as wss://LIVEKIT_DOMAIN.
+# Media ports below must be published to the host and open in the firewall.
+# `keys` MUST match LIVEKIT_API_KEY / LIVEKIT_API_SECRET in the backend .env.prod.
+# =============================================================================
+port: 7880
+log_level: info
+
+rtc:
+  tcp_port: 7881           # ICE/TCP fallback (open in firewall)
+  udp_port: 7882           # single-port UDP media mux (open in firewall)
+  use_external_ip: false   # we pass the public IP explicitly via --node-ip
+
+keys:
+  # CHANGE THIS SECRET. Must equal LIVEKIT_API_SECRET. >= 32 chars.
+  classpulse: REPLACE_WITH_LIVEKIT_API_SECRET_MIN_32_CHARS

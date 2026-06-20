@@ -1,0 +1,134 @@
+# =============================================================================
+# ClassPulse — PRODUCTION stack (single VPS, full Docker, Caddy auto-HTTPS)
+#
+#   caddy     edge: serves SPA + proxies /api /ws /storage + livekit/minio subdomains
+#   frontend  build context only (image consumed by caddy via build)
+#   backend   Spring Boot (Java 21)
+#   postgres  PostgreSQL 16
+#   redis     Redis 7
+#   minio     S3-compatible object storage
+#   livekit   WebRTC SFU
+#
+# Usage:
+#   cp .env.prod.example .env.prod   &&  edit it
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Build context for the frontend is the sibling repo ../ClassPulseFE
+# =============================================================================
+services:
+  caddy:
+    build:
+      context: ../ClassPulseFE
+    container_name: classpulse-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      LIVEKIT_DOMAIN: ${LIVEKIT_DOMAIN}
+      MINIO_DOMAIN: ${MINIO_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - minio
+      - livekit
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: classpulse-backend
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/classpulse
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      MINIO_ENDPOINT: https://${MINIO_DOMAIN}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      LIVEKIT_URL: wss://${LIVEKIT_DOMAIN}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      APP_COOKIE_SECURE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: classpulse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: classpulse
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d classpulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: classpulse-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: classpulse-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:9001:9001"   # console: reach via SSH tunnel only
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: classpulse-livekit
+    restart: unless-stopped
+    command: --config /etc/livekit.yaml --node-ip ${LIVEKIT_NODE_IP}
+    ports:
+      - "7881:7881"          # ICE/TCP
+      - "7882:7882/udp"      # media UDP mux
+    volumes:
+      - ./livekit.prod.yaml:/etc/livekit.yaml:ro
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
