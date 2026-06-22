@@ -1,5 +1,6 @@
 package com.classpulse.session;
 
+import com.classpulse.common.exception.ForbiddenException;
 import com.classpulse.common.response.ApiResponse;
 import com.classpulse.common.response.PageMeta;
 import com.classpulse.common.security.UserPrincipal;
@@ -26,6 +27,7 @@ public class SessionController {
     private final SessionService sessionService;
     private final SessionSummaryComputeJob summaryComputeJob;
     private final SessionBroadcastService broadcastService;
+    private final LiveKitTokenService liveKitTokenService;
 
     @Operation(summary = "Start session [OWNER]")
     @PostMapping("/classrooms/{classroomId}/sessions")
@@ -99,5 +101,24 @@ public class SessionController {
     @PreAuthorize("@sessionSecurity.isParticipant(#sessionId, authentication)")
     public ResponseEntity<ApiResponse<List<PresenceDto>>> getPresence(@PathVariable UUID sessionId) {
         return ResponseEntity.ok(ApiResponse.ok(sessionService.getPresence(sessionId)));
+    }
+
+    @Operation(summary = "Get LiveKit access token [PARTICIPANT]")
+    @PostMapping("/sessions/{sessionId}/livekit-token")
+    @PreAuthorize("@sessionSecurity.isParticipant(#sessionId, authentication)")
+    public ResponseEntity<ApiResponse<LiveKitTokenResponse>> liveKitToken(
+            @PathVariable UUID sessionId,
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(value = "roomName", required = false) String roomName) {
+        // Phòng chính = "session-{id}"; breakout room = "session-{id}-room-{roomId}".
+        String mainRoom = "session-" + sessionId;
+        String room = (roomName == null || roomName.isBlank()) ? mainRoom : roomName;
+        // Chống mint token cho room của session khác: chỉ chấp nhận phòng chính hoặc breakout của chính session này.
+        if (!room.equals(mainRoom) && !room.startsWith(mainRoom + "-room-")) {
+            throw new ForbiddenException("Room không thuộc phiên học này");
+        }
+        LiveKitTokenResponse response = liveKitTokenService.generate(
+                principal.userId(), principal.name(), room);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 }

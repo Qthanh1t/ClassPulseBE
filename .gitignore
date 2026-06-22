@@ -38,4 +38,9 @@ out/
 
 ### Environment ###
 .env
+.env.prod
+.env.*.local
 *.env.local
+# keep committed templates
+!.env.example
+!.env.prod.example

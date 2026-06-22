@@ -1,0 +1,11 @@
+.git
+.gradle
+build
+*.log
+.env
+.env.*
+!.env.prod.example
+livekit-server.exe
+HELP.md
+.idea
+*.iml

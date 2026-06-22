@@ -65,6 +65,12 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:classpulse}
 
+livekit:
+  url: ${LIVEKIT_URL:ws://localhost:7880}        # trả về client để kết nối SFU
+  api-key: ${LIVEKIT_API_KEY:classpulse}          # khớp keys: trong livekit.yaml
+  api-secret: ${LIVEKIT_API_SECRET:classpulse_livekit_dev_secret_change_me_min32chars}
+  token-ttl: 21600                                # TTL access token (giây) = 6 giờ
+
 logging:
   pattern:
     console: "%d{HH:mm:ss} %-5level [%X{requestId}] %logger{36} - %msg%n"

@@ -64,6 +64,24 @@ services:
       - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
     restart: unless-stopped
 
+  # ⚠️ Trên Windows, Docker Desktop (WSL2) NAT chặn media WebRTC khi test 2 thiết bị
+  # (chỉ advertise IP nội bộ WSL). DÙNG bản native `livekit-server.exe` thay thế:
+  #   .\start-livekit.ps1            (đọc LIVEKIT_NODE_IP từ .env)
+  # Service Docker này để opt-in (chỉ chạy 1 máy/Linux), KHÔNG start mặc định để khỏi
+  # đụng cổng với bản native. Bật khi cần: `docker compose --profile docker-livekit up -d livekit`
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: classpulse-livekit
+    profiles: ["docker-livekit"]
+    command: --config /etc/livekit.yaml --node-ip ${LIVEKIT_NODE_IP:-127.0.0.1}
+    ports:
+      - "7880:7880"          # signaling (WS)
+      - "7881:7881"          # ICE/TCP
+      - "7882:7882/udp"      # media UDP mux
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
