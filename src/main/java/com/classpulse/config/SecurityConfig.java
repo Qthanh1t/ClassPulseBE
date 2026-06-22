@@ -34,6 +34,12 @@ public class SecurityConfig {
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
+    // Comma-separated CORS origin patterns. Default = local dev hosts.
+    // In production set APP_CORS_ALLOWED_ORIGINS=https://<your-domain> (relaxed-binding → app.cors.allowed-origins).
+    @org.springframework.beans.factory.annotation.Value(
+            "${app.cors.allowed-origins:http://localhost:5173,http://localhost:*,https://localhost:*,http://192.168.*:*,https://192.168.*:*,http://10.*:*,https://10.*:*}")
+    private List<String> allowedOriginPatterns;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -61,15 +67,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173",
-                "http://localhost:*",
-                "https://localhost:*",
-                "http://192.168.*:*",
-                "https://192.168.*:*",
-                "http://10.*:*",
-                "https://10.*:*",
-                "https://classpulse.app"));
+        config.setAllowedOriginPatterns(allowedOriginPatterns);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Request-ID"));
         config.setAllowCredentials(true);
