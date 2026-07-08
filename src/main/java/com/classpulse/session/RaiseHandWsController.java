@@ -24,6 +24,7 @@ public class RaiseHandWsController {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final SessionBroadcastService broadcastService;
+    private final SessionSecurityBean sessionSecurity;
     private final StringRedisTemplate redisTemplate;
 
     @MessageMapping("/session/{sessionId}/raise-hand")
@@ -33,6 +34,8 @@ public class RaiseHandWsController {
             Principal principal) {
         if (!(principal instanceof StompPrincipal sp)) return;
         if (sp.role() != Role.STUDENT) return;
+        // Chỉ HS đang hiện diện trong phiên mới giơ tay — chặn HS ngoài phiên bơm sự kiện.
+        if (!sessionSecurity.isActiveParticipant(sessionId, sp.userId(), false)) return;
 
         UUID studentId = sp.userId();
         String key = "session:" + sessionId + ":raised_hands";

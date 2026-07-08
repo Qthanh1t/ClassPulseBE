@@ -25,9 +25,14 @@ public class ClassroomSecurityBean {
         if (!(authentication.getPrincipal() instanceof UserPrincipal principal)) {
             return false;
         }
-        if (classroomRepository.existsByIdAndTeacher_Id(classroomId, principal.userId())) {
+        return isMember(classroomId, principal.userId());
+    }
+
+    /** Overload dùng cho WebSocket — StompPrincipal cho thẳng userId, không có Authentication. */
+    public boolean isMember(UUID classroomId, UUID userId) {
+        if (classroomRepository.existsByIdAndTeacher_Id(classroomId, userId)) {
             return true;
         }
-        return membershipRepository.existsByClassroom_IdAndStudent_IdAndIsActiveTrue(classroomId, principal.userId());
+        return membershipRepository.existsByClassroom_IdAndStudent_IdAndIsActiveTrue(classroomId, userId);
     }
 }

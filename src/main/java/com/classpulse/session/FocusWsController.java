@@ -20,6 +20,7 @@ import java.util.UUID;
 public class FocusWsController {
 
     private final SessionBroadcastService broadcastService;
+    private final SessionSecurityBean sessionSecurity;
 
     @MessageMapping("/session/{sessionId}/focus")
     public void handleFocusStudent(
@@ -28,6 +29,8 @@ public class FocusWsController {
             Principal principal) {
         if (!(principal instanceof StompPrincipal sp)) return;
         if (sp.role() != Role.TEACHER) return;
+        // Chỉ GV SỞ HỮU phiên mới điều khiển spotlight — chặn GV lớp khác bơm focus_changed.
+        if (!sessionSecurity.isOwner(sessionId, sp.userId())) return;
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("focusedStudentId", request.getStudentId()); // null = unfocus

@@ -23,9 +23,9 @@ public class StudentAnswerController {
 
     private final StudentAnswerService studentAnswerService;
 
-    @Operation(summary = "Submit answer [STUDENT]")
+    @Operation(summary = "Submit answer [STUDENT + ACTIVE PARTICIPANT]")
     @PostMapping
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT') and @sessionSecurity.isActiveParticipant(#sessionId, authentication)")
     public ResponseEntity<ApiResponse<StudentAnswerDto>> submit(
             @PathVariable UUID sessionId,
             @PathVariable UUID questionId,
@@ -37,9 +37,9 @@ public class StudentAnswerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(dto));
     }
 
-    @Operation(summary = "Get answers for question [AUTH] — teacher sees all, student sees own")
+    @Operation(summary = "Get answers for question [PARTICIPANT] — owner sees all, student sees own")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@sessionSecurity.isParticipant(#sessionId, authentication)")
     public ResponseEntity<ApiResponse<List<StudentAnswerDto>>> getAnswers(
             @PathVariable UUID sessionId,
             @PathVariable UUID questionId,

@@ -75,9 +75,9 @@ public class SessionController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    @Operation(summary = "Join session [STUDENT]")
+    @Operation(summary = "Join session [STUDENT + CLASS MEMBER]")
     @PostMapping("/sessions/{sessionId}/join")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT') and @sessionSecurity.isClassroomMember(#sessionId, authentication)")
     public ResponseEntity<ApiResponse<JoinSessionResponse>> join(
             @PathVariable UUID sessionId,
             @AuthenticationPrincipal UserPrincipal principal) {
@@ -103,9 +103,9 @@ public class SessionController {
         return ResponseEntity.ok(ApiResponse.ok(sessionService.getPresence(sessionId)));
     }
 
-    @Operation(summary = "Get LiveKit access token [PARTICIPANT]")
+    @Operation(summary = "Get LiveKit access token [ACTIVE PARTICIPANT]")
     @PostMapping("/sessions/{sessionId}/livekit-token")
-    @PreAuthorize("@sessionSecurity.isParticipant(#sessionId, authentication)")
+    @PreAuthorize("@sessionSecurity.isActiveParticipant(#sessionId, authentication)")
     public ResponseEntity<ApiResponse<LiveKitTokenResponse>> liveKitToken(
             @PathVariable UUID sessionId,
             @AuthenticationPrincipal UserPrincipal principal,

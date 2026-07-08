@@ -32,6 +32,9 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     @Query("SELECT s.teacher.id FROM Session s WHERE s.id = :sessionId")
     Optional<UUID> findTeacherIdById(@Param("sessionId") UUID sessionId);
 
+    @Query("SELECT s.classroom.id FROM Session s WHERE s.id = :sessionId")
+    Optional<UUID> findClassroomIdById(@Param("sessionId") UUID sessionId);
+
     Optional<Session> findByIdAndClassroom_Id(UUID id, UUID classroomId);
 
     boolean existsBySchedule_Id(UUID scheduleId);

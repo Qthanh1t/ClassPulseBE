@@ -17,6 +17,9 @@ public interface SessionPresenceRepository extends JpaRepository<SessionPresence
 
     Optional<SessionPresence> findById_SessionIdAndId_StudentId(UUID sessionId, UUID studentId);
 
+    /** True chỉ khi HS đang HIỆN DIỆN trong phiên (đã join và chưa rời) — dùng gác live media. */
+    boolean existsById_SessionIdAndId_StudentIdAndLeftAtIsNull(UUID sessionId, UUID studentId);
+
     @Query("SELECT p.id.studentId FROM SessionPresence p WHERE p.session.id = :sessionId AND p.leftAt IS NULL")
     List<UUID> findActiveStudentIds(@Param("sessionId") UUID sessionId);
 
